@@ -1,3 +1,4 @@
+import { SeoDataResponse } from "@/app/types/global";
 import { baseApi } from "@/redux/api/baseApi";
 
 export interface RoomData {
@@ -5,7 +6,7 @@ export interface RoomData {
   roomName: string;
   beds: number;
   washrooms: number;
-  pariking: boolean;
+  parking: boolean; // ✅ fixed spelling
   gym: boolean;
   swimmingPool: boolean;
   wifi: boolean;
@@ -19,8 +20,9 @@ export interface RoomData {
 }
 
 export interface HotelData {
-  id: string;
+  id?: string;
   name: string;
+  hotelId?: string; // optional if not always present
   address: string;
   lat: number;
   lng: number;
@@ -34,26 +36,12 @@ export interface HotelData {
   createdAt: string;
   updatedAt: string;
   rooms: RoomData[];
-  distance: number;
-}
-
-export interface GetAllHotelsResponse {
-  success: boolean;
-  message: string;
-  data: {
-    meta: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-    data: HotelData[];
-  };
+  distance?: number; // optional if sometimes missing
 }
 
 export const hotelApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    createHotel: build.mutation<GetAllHotelsResponse, HotelData>({
+    createHotel: build.mutation<SeoDataResponse<HotelData>, HotelData>({
       query: (body) => ({
         url: "/hotels/create",
         method: "POST",
@@ -63,7 +51,7 @@ export const hotelApi = baseApi.injectEndpoints({
     }),
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    getAllHotels: build.query<GetAllHotelsResponse, Record<string, any>>({
+    getAllHotels: build.query<SeoDataResponse<HotelData>, Record<string, any>>({
       query: (params = {}) => ({
         url: "/hotels",
         method: "GET",
@@ -72,7 +60,7 @@ export const hotelApi = baseApi.injectEndpoints({
       providesTags: ["Hotel"],
     }),
 
-    getSingleHotel: build.query<GetAllHotelsResponse, string>({
+    getSingleHotel: build.query<SeoDataResponse<HotelData>, string>({
       query: (id) => ({
         url: `/hotels/single/${id}`,
         method: "GET",
@@ -81,8 +69,8 @@ export const hotelApi = baseApi.injectEndpoints({
     }),
 
     updateSingleHotel: build.mutation<
-      GetAllHotelsResponse,
-      { id: string; body: GetAllHotelsResponse }
+      SeoDataResponse<HotelData>,
+      { id: string; body: HotelData }
     >({
       query: ({ id, body }) => ({
         url: `/hotels/update/${id}`,
@@ -92,7 +80,7 @@ export const hotelApi = baseApi.injectEndpoints({
       invalidatesTags: ["Hotel"],
     }),
 
-    deleteSingleHotel: build.mutation<GetAllHotelsResponse, string>({
+    deleteSingleHotel: build.mutation<SeoDataResponse<HotelData>, string>({
       query: (id) => ({
         url: `/hotels/delete/${id}`,
         method: "DELETE",

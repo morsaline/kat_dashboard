@@ -1,28 +1,44 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { Search, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Hotel } from "@/app/(DashboardLayout)/dashboard/hotels/page"
+import { useState, useMemo } from "react";
+import { Search, MoreVertical, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { HotelData } from "@/redux/features/hotel/hotelApi";
+// import { Hotel } from "@/app/(DashboardLayout)/dashboard/hotels/page"
 
-
-interface HotelListProps {
-  hotels: Hotel[]
-  onAddNew: () => void
-  onEdit: (hotel: Hotel) => void
-  onDelete: (id: string) => void
-  onViewDetails: (hotel: Hotel) => void
+export interface HotelListProps {
+  hotels: HotelData[];
+  onAddNew: () => void;
+  onEdit: (hotel: HotelData) => void;
+  onDelete: (id: string) => void;
+  onViewDetails: (hotel: HotelData) => void;
+  currentPage: number;
+  setCurrentPage: (page: number) => void;
+  totalPages: number;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
 }
 
-export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }: HotelListProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null)
+export function HotelList({
+  hotels,
+  onAddNew,
+  onEdit,
+  onDelete,
+  onViewDetails,
+}: HotelListProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
 
-  const itemsPerPage = 10
+  const itemsPerPage = 10;
 
   const filteredHotels = useMemo(() => {
     return hotels.filter(
@@ -30,48 +46,52 @@ export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }:
         h.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         h.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         h.instagram.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        h.whatsapp.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
-  }, [searchTerm, hotels])
+        h.whatsapp.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, hotels]);
 
-  const totalPages = Math.ceil(filteredHotels.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentHotels = filteredHotels.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(filteredHotels.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentHotels = filteredHotels.slice(startIndex, endIndex);
 
-  const handlePageChange = (page: number) => setCurrentPage(page)
-  const handlePrevious = () => currentPage > 1 && setCurrentPage(currentPage - 1)
-  const handleNext = () => currentPage < totalPages && setCurrentPage(currentPage + 1)
+  const handlePageChange = (page: number) => setCurrentPage(page);
+  const handlePrevious = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
+  const handleNext = () =>
+    currentPage < totalPages && setCurrentPage(currentPage + 1);
 
   const openDeleteModal = (hotelId: string) => {
-    setSelectedHotelId(hotelId)
-    setIsModalOpen(true)
-  }
+    setSelectedHotelId(hotelId);
+    setIsModalOpen(true);
+  };
 
   const closeModal = () => {
-    setIsModalOpen(false)
-    setSelectedHotelId(null)
-  }
+    setIsModalOpen(false);
+    setSelectedHotelId(null);
+  };
 
   const confirmDelete = () => {
     if (selectedHotelId) {
-      onDelete(selectedHotelId)
-      closeModal()
+      onDelete(selectedHotelId);
+      closeModal();
     }
-  }
+  };
 
   const getPageNumbers = () => {
-    const pages = []
-    const maxVisiblePages = 5
+    const pages = [];
+    const maxVisiblePages = 5;
     if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i)
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      if (currentPage <= 3) for (let i = 1; i <= 5; i++) pages.push(i)
-      else if (currentPage >= totalPages - 2) for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
-      else for (let i = currentPage - 2; i <= currentPage + 2; i++) pages.push(i)
+      if (currentPage <= 3) for (let i = 1; i <= 5; i++) pages.push(i);
+      else if (currentPage >= totalPages - 2)
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      else
+        for (let i = currentPage - 2; i <= currentPage + 2; i++) pages.push(i);
     }
-    return pages
-  }
+    return pages;
+  };
 
   return (
     <div className="p-6 min-h-screen">
@@ -91,13 +111,16 @@ export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }:
               className="pl-10 rounded-md border-gray-300"
               value={searchTerm}
               onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setCurrentPage(1)
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
               }}
             />
           </div>
 
-          <Button onClick={onAddNew} className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2">
+          <Button
+            onClick={onAddNew}
+            className="bg-orange-500 hover:bg-orange-600 text-white flex items-center gap-2"
+          >
             + Add Hotels
           </Button>
         </div>
@@ -110,14 +133,19 @@ export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }:
                 <th className="px-6 py-3 text-left font-medium">Hotel ID</th>
                 <th className="px-6 py-3 text-left font-medium">Hotels Name</th>
                 <th className="px-6 py-3 text-left font-medium">Location</th>
-                <th className="px-6 py-3 text-left font-medium">What&apos;s APP</th>
+                <th className="px-6 py-3 text-left font-medium">
+                  What&apos;s APP
+                </th>
                 <th className="px-6 py-3 text-left font-medium">Instagram</th>
                 <th className="px-6 py-3 text-left font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {currentHotels.map((hotel, index) => (
-                <tr key={hotel.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                <tr
+                  key={hotel.id}
+                  className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                >
                   <td className="px-6 py-3 border-t">{hotel.id}</td>
                   <td className="px-6 py-3 border-t">{hotel.name}</td>
                   <td className="px-6 py-3 border-t">{hotel.address}</td>
@@ -126,19 +154,29 @@ export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }:
                   <td className="px-6 py-3 border-t">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:text-gray-900">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-600 hover:text-gray-900"
+                        >
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem onClick={() => onEdit(hotel)} className="cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={() => onEdit(hotel)}
+                          className="cursor-pointer"
+                        >
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onViewDetails(hotel)} className="cursor-pointer">
+                        <DropdownMenuItem
+                          onClick={() => onViewDetails(hotel)}
+                          className="cursor-pointer"
+                        >
                           Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => openDeleteModal(hotel.id)}
+                          onClick={() => openDeleteModal(hotel?.id || "")}
                           className="cursor-pointer text-red-500 focus:text-red-600"
                         >
                           Remove
@@ -156,7 +194,9 @@ export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }:
         <div className="flex items-center justify-between mt-6">
           {/* Left: info */}
           <div className="text-sm text-gray-500">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredHotels.length)} of {filteredHotels.length} hotels
+            Showing {startIndex + 1} to{" "}
+            {Math.min(endIndex, filteredHotels.length)} of{" "}
+            {filteredHotels.length} hotels
           </div>
 
           {/* Right: page numbers */}
@@ -204,9 +244,15 @@ export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }:
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-white rounded-lg p-6 w-80 relative shadow-2xl">
-            <h2 className="text-lg text-center font-semibold mb-4">Do you want to remove?</h2>
+            <h2 className="text-lg text-center font-semibold mb-4">
+              Do you want to remove?
+            </h2>
             <div className="flex justify-around gap-2">
-              <Button variant="ghost" onClick={closeModal} className="text-[#FF6203]">
+              <Button
+                variant="ghost"
+                onClick={closeModal}
+                className="text-[#FF6203]"
+              >
                 No
               </Button>
               <Button variant="destructive" onClick={confirmDelete}>
@@ -217,5 +263,5 @@ export function HotelList({ hotels, onAddNew, onEdit, onDelete, onViewDetails }:
         </div>
       )}
     </div>
-  )
+  );
 }
