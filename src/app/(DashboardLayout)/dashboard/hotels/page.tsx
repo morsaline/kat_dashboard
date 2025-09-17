@@ -3,23 +3,16 @@
 import { HotelForm } from "@/components/Hotel/Hotel-From";
 import { HotelList } from "@/components/Hotel/Hotel-List";
 import { HotelModal } from "@/components/Hotel/Hotel-modal";
-import {
-  HotelData,
-  RoomData,
-  useDeleteSingleHotelMutation,
-  useGetAllHotelsQuery,
-} from "@/redux/features/hotel/hotelApi";
-import Loader from "@/lib/Loader";
 import { useState } from "react";
 
 export interface Hotel {
   id: string;
+  hotelId: string;
   name: string;
   address: string;
   whatsapp: string;
   instagram: string;
   phone: string;
-  hotelImage?: string;
   description: string;
   productImage: string;
   rooms: Room[];
@@ -28,82 +21,180 @@ export interface Hotel {
 export interface Room {
   id: string;
   name: string;
-  beds: string | number;
-  washroom: string | number;
-  parking: boolean;
-  gym: boolean;
-  roomPictures?: string;
-  swimming: boolean;
-  wifi: boolean;
-  breakfast: boolean;
-  ac: boolean;
-  price: number;
-  picture: string[];
+  beds: string;
+  washroom: string;
+  parking: string;
+  gym: string;
+  swimming: string;
+  wifi: string;
+  breakfast: string;
+  roomPictures: string[];
 }
 
 export default function HotelManagement() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [deleteHotel] = useDeleteSingleHotelMutation();
-
-  const itemsPerPage = 10;
-
-  const { data: allHotels, isLoading } = useGetAllHotelsQuery({
-    page: currentPage,
-    limit: itemsPerPage,
-    search: searchTerm,
-  });
+  const [hotels, setHotels] = useState<Hotel[]>([
+    {
+      id: "H001",
+      hotelId: "H001",
+      name: "Sunset Paradise Hotel",
+      address: "Miami Beach, Florida",
+      whatsapp: "0771002345",
+      instagram: "@sunsetparadise",
+      phone: "0123456789",
+      description: "A vibrant hotel with stunning sunsets and beach access.",
+      productImage: "/images/hotel/luxury-hotel-exterior.png",
+      rooms: [
+        {
+          id: "1",
+          name: "Deluxe Ocean View",
+          beds: "2 Queen Beds",
+          washroom: "En-suite",
+          parking: "Available",
+          gym: "24/7 Access",
+          swimming: "Pool Access",
+          wifi: "Free WiFi",
+          breakfast: "Included",
+          roomPictures: ["/images/hotel/business-hotel-room.png"],
+        },
+      ],
+    },
+    {
+      id: "H002",
+      hotelId: "H002",
+      name: "Mountain Retreat",
+      address: "Aspen, Colorado",
+      whatsapp: "0771002346",
+      instagram: "@mountainretreat",
+      phone: "0123456790",
+      description:
+        "Cozy lodge in the mountains with scenic views and skiing options.",
+      productImage: "/images/hotel/luxury-hotel-exterior.png",
+      rooms: [
+        {
+          id: "1",
+          name: "Standard Cabin",
+          beds: "1 Double Bed",
+          washroom: "Shared",
+          parking: "Street",
+          gym: "No Access",
+          swimming: "No Pool",
+          wifi: "Basic WiFi",
+          breakfast: "Not Included",
+          roomPictures: ["/images/hotel/family-hotel-room.png"],
+        },
+      ],
+    },
+    {
+      id: "H003",
+      hotelId: "H003",
+      name: "City Lights Hotel",
+      address: "New York, Manhattan",
+      whatsapp: "0771002347",
+      instagram: "@citylights",
+      phone: "0123456791",
+      description:
+        "Luxury hotel in the heart of the city with rooftop bar and skyline views.",
+      productImage: "/images/hotel/luxury-hotel-exterior.png",
+      rooms: [
+        {
+          id: "1",
+          name: "Executive Suite",
+          beds: "1 King Bed",
+          washroom: "Jacuzzi",
+          parking: "Valet",
+          gym: "Premium Access",
+          swimming: "Indoor Pool",
+          wifi: "Ultra Fast",
+          breakfast: "Chef Service",
+          roomPictures: ["/images/hotel/ocean-suite-hotel-room.png"],
+        },
+      ],
+    },
+    {
+      id: "H004",
+      hotelId: "H004",
+      name: "Tropical Escape",
+      address: "Bali, Indonesia",
+      whatsapp: "0771002348",
+      instagram: "@tropicalescape",
+      phone: "0123456792",
+      description: "Relaxing beach resort surrounded by tropical gardens.",
+      productImage: "/images/hotel/luxury-hotel-exterior.png",
+      rooms: [
+        {
+          id: "1",
+          name: "Family Villa",
+          beds: "2 Double Beds",
+          washroom: "2 Bathrooms",
+          parking: "Private Spot",
+          gym: "Kids Area",
+          swimming: "Private Pool",
+          wifi: "Family Plan",
+          breakfast: "Buffet",
+          roomPictures: ["/images/hotel/standard-hotel-room.png"],
+        },
+      ],
+    },
+    {
+      id: "H005",
+      hotelId: "H005",
+      name: "Business Hub Hotel",
+      address: "London, UK",
+      whatsapp: "0771002349",
+      instagram: "@businesshub",
+      phone: "0123456793",
+      description:
+        "Modern hotel designed for business travelers with conference rooms.",
+      productImage: "/images/hotel/luxury-hotel-exterior.png",
+      rooms: [
+        {
+          id: "1",
+          name: "Business Room",
+          beds: "1 Queen Bed",
+          washroom: "Modern",
+          parking: "Business",
+          gym: "Executive",
+          swimming: "Adult Pool",
+          wifi: "Business Class",
+          breakfast: "Continental",
+          roomPictures: ["/images/hotel/business-hotel-room.png"],
+        },
+      ],
+    },
+  ]);
 
   const [currentView, setCurrentView] = useState<"list" | "add" | "edit">(
     "list"
   );
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
-
-  // Transform API data to local Hotel structure
-  const hotels: Hotel[] =
-    allHotels?.data?.data.map((hotel: HotelData) => ({
-      id: hotel.id,
-      name: hotel.name,
-      address: hotel.address,
-      whatsapp: hotel.whatsapp,
-      instagram: hotel.instagram,
-      phone: hotel.phone,
-      description: hotel.description,
-      productImage: hotel.hotelImage,
-      rooms: hotel.rooms.map((room: RoomData) => ({
-        id: room.id,
-        name: room.roomName,
-        beds: room.beds,
-        washroom: room.washrooms,
-        parking: room.pariking,
-        gym: room.gym,
-        swimming: room.swimmingPool,
-        wifi: room.wifi,
-        breakfast: room.breakfast,
-        ac: room.ac,
-        price: room.price,
-        picture: room.roomPictures,
-      })),
-    })) || [];
-
-  console.log("all hotels", allHotels?.data);
+  const [showModal, setShowModal] = useState(false);
 
   const handleSubmit = (hotel: Hotel | Omit<Hotel, "id">) => {
-    // Add/edit local state if needed (optimistic update)
+    if ("id" in hotel) {
+      // Edit
+      setHotels(hotels.map((h) => (h.id === hotel.id ? hotel : h)));
+      setEditingHotel(null);
+    } else {
+      console.log(hotel, "add hotels");
+      // Add
+      const newHotel: Omit<Hotel, "id"> = {
+        ...hotel,
+        hotelId: `H${String(Date.now()).slice(-3).padStart(3, "0")}`,
+      };
+      console.log(newHotel, "hotel Data");
+      // setHotels([...hotels, newHotel]);
+    }
     setCurrentView("list");
   };
 
-  const handleDeleteHotel = async (id: string) => {
-    try {
-      await deleteHotel(id).unwrap(); // unwrap to handle errors
-      console.log("Hotel deleted successfully");
-    } catch (err) {
-      console.error("Failed to delete hotel", err);
-    }
+  const handleDeleteHotel = (id: string) => {
+    setHotels(hotels.filter((h) => h.id !== id));
   };
+
   const handleViewDetails = (hotel: Hotel) => {
     setSelectedHotel(hotel);
+    setShowModal(true);
   };
 
   const handleEditClick = (hotel: Hotel) => {
@@ -111,11 +202,10 @@ export default function HotelManagement() {
     setCurrentView("edit");
   };
 
-  if (isLoading) return <Loader />;
-
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-full mx-auto">
+        {/* Hotel List */}
         {currentView === "list" && (
           <HotelList
             hotels={hotels}
@@ -123,14 +213,10 @@ export default function HotelManagement() {
             onEdit={handleEditClick}
             onDelete={handleDeleteHotel}
             onViewDetails={handleViewDetails}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            totalPages={allHotels?.data?.meta?.totalPages || 1}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
           />
         )}
 
+        {/* Add Hotel */}
         {currentView === "add" && (
           <HotelForm
             onSubmit={handleSubmit}
@@ -138,6 +224,7 @@ export default function HotelManagement() {
           />
         )}
 
+        {/* Edit Hotel */}
         {currentView === "edit" && editingHotel && (
           <HotelForm
             hotel={editingHotel}
@@ -148,11 +235,9 @@ export default function HotelManagement() {
         )}
       </div>
 
-      {selectedHotel && (
-        <HotelModal
-          hotel={selectedHotel}
-          onClose={() => setSelectedHotel(null)}
-        />
+      {/* View Hotel Modal */}
+      {showModal && selectedHotel && (
+        <HotelModal hotel={selectedHotel} onClose={() => setShowModal(false)} />
       )}
     </div>
   );

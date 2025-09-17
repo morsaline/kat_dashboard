@@ -1,13 +1,13 @@
-"use client"
-import { Hotel } from "@/app/(DashboardLayout)/dashboard/hotels/page"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { X, Star, Phone, MapPin } from "lucide-react"
-import Image from "next/image"
+"use client";
+import { Hotel } from "@/app/(DashboardLayout)/dashboard/hotels/page";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { X, Star, Phone, MapPin } from "lucide-react";
+import Image from "next/image";
 
 interface HotelModalProps {
-  hotel: Hotel
-  onClose: () => void
+  hotel: Hotel;
+  onClose: () => void;
 }
 
 export function HotelModal({ hotel, onClose }: HotelModalProps) {
@@ -30,7 +30,7 @@ export function HotelModal({ hotel, onClose }: HotelModalProps) {
               <div className="space-y-4">
                 <div className="aspect-video rounded-lg overflow-hidden relative">
                   <Image
-                    src={hotel?.hotelImage || "/placeholder.svg"}
+                    src={hotel.productImage || "/placeholder.svg"}
                     alt={hotel.name}
                     fill
                     className="object-cover"
@@ -44,7 +44,7 @@ export function HotelModal({ hotel, onClose }: HotelModalProps) {
                       className="aspect-square rounded-md overflow-hidden relative"
                     >
                       <Image
-                        src={room?.roomPictures || "/placeholder.svg"}
+                        src={room.picture || "/placeholder.svg"}
                         alt={room.name}
                         fill
                         className="object-cover"
@@ -115,7 +115,7 @@ export function HotelModal({ hotel, onClose }: HotelModalProps) {
 
                       <div className="w-20 h-20 relative rounded-lg overflow-hidden ml-4">
                         <Image
-                          src={room?.roomPictures || "/placeholder.svg"}
+                          src={room.picture || "/placeholder.svg"}
                           alt={room.name}
                           fill
                           className="object-cover"
