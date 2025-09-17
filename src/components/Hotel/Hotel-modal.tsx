@@ -1,12 +1,13 @@
 "use client";
-import { Hotel } from "@/app/(DashboardLayout)/dashboard/hotels/page";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { HotelData } from "@/redux/features/hotel/hotelApi";
 import { X, Star, Phone, MapPin } from "lucide-react";
 import Image from "next/image";
 
 interface HotelModalProps {
-  hotel: Hotel;
+  hotel: HotelData;
   onClose: () => void;
 }
 

@@ -12,7 +12,7 @@ import type { TouristSpot } from "./TouristSpot-List"
 
 interface TouristSpotFormProps {
   touristSpot?: TouristSpot
-  onSubmit: (spot: TouristSpot | Omit<TouristSpot, "id">) => void
+  onSubmit: (spot: TouristSpot) => void;  
   onCancel: () => void
   isEditing?: boolean
 }

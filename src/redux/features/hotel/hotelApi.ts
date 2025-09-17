@@ -36,6 +36,7 @@ export interface HotelData {
   createdAt: string;
   updatedAt: string;
   rooms: RoomData[];
+  
   distance?: number; // optional if sometimes missing
 }
 
