@@ -10,9 +10,11 @@ import {
   useGetAllTouristSportsQuery,
 } from "@/redux/features/touristSports/touristSportsApi";
 import Loader from "@/lib/Loader";
+import { toast } from "sonner";
 
 export interface TouristSpot {
   id: string;
+  
   name: string;
   address: string;
   phone: string;

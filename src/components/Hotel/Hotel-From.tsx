@@ -39,22 +39,24 @@ export function HotelForm({
     productImage: hotel?.productImage || (null as string | null),
   });
 
-  const [rooms, setRooms] = useState<Room[]>(
-    hotel?.rooms || [
-      {
-        id: "1",
-        name: "",
-        beds: "",
-        washroom: "",
-        parking: "",
-        gym: "",
-        swimming: "",
-        wifi: "",
-        breakfast: "",
-        roomPictures: [],
-      },
-    ]
-  );
+const [rooms, setRooms] = useState<Room[]>(
+  hotel?.rooms ?? [
+    {
+      id: "1",
+      name: "",
+      beds: "",
+      washroom: "",
+      parking: "",
+      gym: "",
+      swimming: "",
+      wifi: "",
+      breakfast: "",
+      roomPictures: [],
+      pictures: [], // Add this line
+      picture: "", // Add this line
+    },
+  ]
+);
 
   const [crateSingleUploadFile] = useCrateSingleUploadFileMutation();
   const [crateMultipleUploadFile] = useCrateMultipleUploadFileMutation();
@@ -69,23 +71,23 @@ export function HotelForm({
     );
   };
 
-  const addRoom = () => {
-    setRooms((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        name: "",
-        beds: "",
-        washroom: "",
-        parking: "",
-        gym: "",
-        swimming: "",
-        wifi: "",
-        breakfast: "",
-        roomPictures: [],
-      },
-    ]);
-  };
+const addRoom = () => {
+  // setRooms((prev) => [
+  //   ...prev,
+  //   {
+  //     id: Date.now().toString(),
+  //     name: "",
+  //     beds: "",
+  //     washroom: "",
+  //     parking: "",
+  //     gym: "",
+  //     swimming: "",
+  //     wifi: "",
+  //     breakfast: "",
+  //     roomPictures: [],
+  //   },
+  // ]);
+};
 
   const removeRoom = (index: number) => {
     if (rooms.length > 1) {

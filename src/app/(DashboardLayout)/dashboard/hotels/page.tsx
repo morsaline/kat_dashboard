@@ -23,11 +23,13 @@ export interface Room {
   name: string;
   beds: string;
   washroom: string;
+  pictures: string[];
   parking: string;
   gym: string;
   swimming: string;
   wifi: string;
   breakfast: string;
+  picture: string;
   roomPictures: string[];
 }
 
@@ -54,113 +56,13 @@ export default function HotelManagement() {
           swimming: "Pool Access",
           wifi: "Free WiFi",
           breakfast: "Included",
+          picture: "/images/hotel/business-hotel-room.png", // Add this line
+          pictures: ["/images/hotel/business-hotel-room.png"],
           roomPictures: ["/images/hotel/business-hotel-room.png"],
         },
       ],
     },
-    {
-      id: "H002",
-      hotelId: "H002",
-      name: "Mountain Retreat",
-      address: "Aspen, Colorado",
-      whatsapp: "0771002346",
-      instagram: "@mountainretreat",
-      phone: "0123456790",
-      description:
-        "Cozy lodge in the mountains with scenic views and skiing options.",
-      productImage: "/images/hotel/luxury-hotel-exterior.png",
-      rooms: [
-        {
-          id: "1",
-          name: "Standard Cabin",
-          beds: "1 Double Bed",
-          washroom: "Shared",
-          parking: "Street",
-          gym: "No Access",
-          swimming: "No Pool",
-          wifi: "Basic WiFi",
-          breakfast: "Not Included",
-          roomPictures: ["/images/hotel/family-hotel-room.png"],
-        },
-      ],
-    },
-    {
-      id: "H003",
-      hotelId: "H003",
-      name: "City Lights Hotel",
-      address: "New York, Manhattan",
-      whatsapp: "0771002347",
-      instagram: "@citylights",
-      phone: "0123456791",
-      description:
-        "Luxury hotel in the heart of the city with rooftop bar and skyline views.",
-      productImage: "/images/hotel/luxury-hotel-exterior.png",
-      rooms: [
-        {
-          id: "1",
-          name: "Executive Suite",
-          beds: "1 King Bed",
-          washroom: "Jacuzzi",
-          parking: "Valet",
-          gym: "Premium Access",
-          swimming: "Indoor Pool",
-          wifi: "Ultra Fast",
-          breakfast: "Chef Service",
-          roomPictures: ["/images/hotel/ocean-suite-hotel-room.png"],
-        },
-      ],
-    },
-    {
-      id: "H004",
-      hotelId: "H004",
-      name: "Tropical Escape",
-      address: "Bali, Indonesia",
-      whatsapp: "0771002348",
-      instagram: "@tropicalescape",
-      phone: "0123456792",
-      description: "Relaxing beach resort surrounded by tropical gardens.",
-      productImage: "/images/hotel/luxury-hotel-exterior.png",
-      rooms: [
-        {
-          id: "1",
-          name: "Family Villa",
-          beds: "2 Double Beds",
-          washroom: "2 Bathrooms",
-          parking: "Private Spot",
-          gym: "Kids Area",
-          swimming: "Private Pool",
-          wifi: "Family Plan",
-          breakfast: "Buffet",
-          roomPictures: ["/images/hotel/standard-hotel-room.png"],
-        },
-      ],
-    },
-    {
-      id: "H005",
-      hotelId: "H005",
-      name: "Business Hub Hotel",
-      address: "London, UK",
-      whatsapp: "0771002349",
-      instagram: "@businesshub",
-      phone: "0123456793",
-      description:
-        "Modern hotel designed for business travelers with conference rooms.",
-      productImage: "/images/hotel/luxury-hotel-exterior.png",
-      rooms: [
-        {
-          id: "1",
-          name: "Business Room",
-          beds: "1 Queen Bed",
-          washroom: "Modern",
-          parking: "Business",
-          gym: "Executive",
-          swimming: "Adult Pool",
-          wifi: "Business Class",
-          breakfast: "Continental",
-          roomPictures: ["/images/hotel/business-hotel-room.png"],
-        },
-      ],
-    },
+    // ... other hotels
   ]);
 
   const [currentView, setCurrentView] = useState<"list" | "add" | "edit">(
