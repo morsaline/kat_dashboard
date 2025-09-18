@@ -50,11 +50,11 @@ export interface TouristSpotDetailResponse {
 export const touristSportsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     // Create
-    createTouristSports: build.mutation<TouristSpot, Partial<TouristSpot>>({
-      query: (body) => ({
+   addTouristSports: build.mutation<TouristSpotListResponse, FormData>({
+      query: (formData) => ({
         url: "/touristSpots/create",
         method: "POST",
-        body,
+        body: formData,
       }),
       invalidatesTags: ["Tourist"],
     }),
@@ -110,7 +110,7 @@ export const touristSportsApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useCreateTouristSportsMutation,
+  useAddTouristSportsMutation,
   useGetAllTouristSportsQuery,
   useGetTouristSportsByIdQuery,
   useDeleteTouristMutation,

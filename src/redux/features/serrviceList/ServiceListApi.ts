@@ -76,6 +76,18 @@ export const serviceApi = baseApi.injectEndpoints({
       invalidatesTags: ["ServiceList"],
     }),
 
+    editService: build.mutation<
+      ServicesResponse,
+      { id: string; formData: FormData }
+    >({
+      query: ({ id, formData }) => ({
+        url: `/services/update/${id}`,
+        method: "PATCH",
+        body: formData,
+      }),
+      invalidatesTags: ["ServiceList"],
+    }),
+
     // Get all categories (assuming this endpoint returns list of categories)
     getServiceCategories: build.query<
       { success: boolean; message: string; data: string[] },
@@ -96,7 +108,7 @@ export const {
   useDeleteServiceMutation,
   useGetServiceCategoriesQuery,
   useAddServiceMutation,
-  
+  useEditServiceMutation,
 } = serviceApi;
 
 export default serviceApi;

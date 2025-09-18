@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,83 +14,131 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useGetServiceCategoriesQuery, useAddServiceMutation, Service } from "@/redux/features/serrviceList/ServiceListApi"; // ✅ Fixed: useAddServiceMutation
+import {
+  useGetServiceCategoriesQuery,
+  useAddServiceMutation,
+  useEditServiceMutation,
+  Service,
+} from "@/redux/features/serrviceList/ServiceListApi";
 import { toast } from "sonner";
+import { fetchLatLng } from "../Restaurant/AddRestaurants";
 
 interface ServiceFormProps {
   onSubmit: () => void;
   onCancel: () => void;
-    service?: Service; // Add the service property here 
-     isEdit?: boolean; // Add the isEdit property with a nullable type
-
+  service?: Service;
+  isEdit?: boolean;
 }
 
-export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps) {
-  const { data: categories, isLoading: loadingCategories } = useGetServiceCategoriesQuery();
-  const [addService] = useAddServiceMutation(); // ✅ Fixed: useAddServiceMutation
+export function ServiceForm({
+  onSubmit: onSuccess,
+  onCancel,
+  service,
+  isEdit = false,
+}: ServiceFormProps) {
+  const { data: categories, isLoading: loadingCategories } =
+    useGetServiceCategoriesQuery();
+
+  const [addService] = useAddServiceMutation();
+  const [editService] = useEditServiceMutation();
 
   const facilityRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const [facilityInputs, setFacilityInputs] = useState([""]);
+  // Form state - initialize from `service` if editing
+  const [formData, setFormData] = useState({
+    serviceName: service?.serviceName || "",
+    category: service?.category || "",
+    address: service?.address || "",
+    phone: service?.phone || "",
+  });
 
-  // Add new facility input
+  const [facilityInputs, setFacilityInputs] = useState<string[]>(
+    service?.facilities && service.facilities.length > 0
+      ? [...service.facilities]
+      : [""]
+  );
+
+  // Update form when `service` changes (e.g., switching between edits)
+  useEffect(() => {
+    if (isEdit && service) {
+      setFormData({
+        serviceName: service.serviceName || "",
+        category: service.category || "",
+        address: service.address || "",
+        phone: service.phone || "",
+      });
+      setFacilityInputs([...service.facilities]);
+    }
+  }, [service, isEdit]);
+
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   const addFacility = () => {
     setFacilityInputs((prev) => [...prev, ""]);
   };
 
-  // Remove facility input
   const removeFacility = (index: number) => {
     if (facilityInputs.length > 1) {
       setFacilityInputs((prev) => prev.filter((_, i) => i !== index));
     }
   };
 
-  // Handle change in facilities
   const handleFacilityChange = (index: number, value: string) => {
     const newFacilities = [...facilityInputs];
     newFacilities[index] = value;
     setFacilityInputs(newFacilities);
   };
 
-  // Handle form submit
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const form = e.currentTarget;
-    const formData = new FormData(form);
+    const { serviceName, category, address, phone } = formData;
 
-    // === Gather all data ===
+    // Validate required fields
+    if (!serviceName || !category || !address || !phone) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
 
-    // Get text fields
-    const serviceName = formData.get("serviceName") as string;
-    const category = formData.get("category") as string;
-    const address = formData.get("address") as string;
-    const lat = parseFloat(formData.get("lat") as string) || 0;
-    const lng = parseFloat(formData.get("lng") as string) || 0;
-    const phone = formData.get("phone") as string;
+    // Geocode address to get lat/lng
+    let latStr = "0",
+      lngStr = "0";
+    try {
+      const { lat, lng } = await fetchLatLng(address);
+      latStr = String(lat);
+      lngStr = String(lng);
+    } catch (err) {
+      toast.error("Could not determine location. Please check the address.");
+      return;
+    }
 
-    // Filter out empty facilities
+    // Filter and validate facilities
     const filteredFacilities = facilityInputs
       .map((f) => f.trim())
       .filter(Boolean);
 
-    // Create service data object
+    if (filteredFacilities.length === 0) {
+      toast.error("At least one facility is required.");
+      return;
+    }
+
+    // Build service data object
     const serviceData = {
       serviceName,
       category,
       address,
-      lat,
-      lng,
+      lat: latStr,
+      lng: lngStr,
       phone,
       facilities: filteredFacilities,
     };
 
-    // Create final FormData for API
+    // Create FormData payload
     const payload = new FormData();
-
-    // Append JSON string under "data"
     payload.append("data", JSON.stringify(serviceData));
 
     // Append images
@@ -103,29 +152,51 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
     }
 
     // Append video
-    const videoFile = videoInputRef.current?.files?.[0];
-    if (videoFile && videoFile.type.startsWith("video/")) {
-      payload.append("video", videoFile);
-    }
+    // const videoFile = videoInputRef.current?.files?.[0];
+    // if (videoFile && videoFile.type.startsWith("video/")) {
+    //   payload.append("video", videoFile);
+    // }
 
-    // === Submit to API ===
     try {
-      await addService(payload).unwrap(); // ✅ Now works!
-      toast.success("Service created successfully!");
-      onSuccess(); // Notify parent to refresh list or close modal
+      if (isEdit && service?.id) {
+        // ✅ Update existing service
+        const result = await editService({
+          id: service.id,
+          formData: payload,
+        }).unwrap();
+        if (result?.success) {
+          toast.success(result?.message || "Service updated successfully!");
+          onSuccess(); // Close modal + refetch list
+        } else {
+          toast.error(result?.message || "Failed to update service.");
+        }
+      } else {
+        // ✅ Create new service
+        const result = await addService(payload).unwrap();
+        if (result?.success) {
+          toast.success(result?.message || "Service added successfully!");
+          onSuccess(); // Close modal + refetch list
+        } else {
+          toast.error(result?.message || "Failed to add service.");
+        }
+      }
     } catch (error: any) {
-      console.error("Error creating service:", error);
-      toast.error(error.data?.message || "Failed to create service.");
+      console.error("Error saving service:", error);
+      toast.error(error.data?.message || "Failed to save service.");
     }
   };
 
   return (
     <div className="p-6 min-h-screen">
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <p className="text-sm text-gray-400 mb-1">Add New Service</p>
-          <h1 className="text-xl font-semibold text-orange-500">Add Service</h1>
+          <p className="text-sm text-gray-400 mb-1">
+            {isEdit ? "Edit Service" : "Add New Service"}
+          </p>
+          <h1 className="text-xl font-semibold text-orange-500">
+            {isEdit ? "Edit Service" : "Add Service"}
+          </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -138,6 +209,10 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
               <Input
                 name="serviceName"
                 placeholder="Enter service name"
+                value={formData.serviceName}
+                onChange={(e) =>
+                  handleInputChange("serviceName", e.target.value)
+                }
                 required
                 className="w-full"
               />
@@ -149,8 +224,18 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
               {loadingCategories ? (
                 <p>Loading categories...</p>
               ) : (
-                <Select name="category" required>
-                  <SelectTrigger className="w-full" disabled={!categories?.data?.length}>
+                <Select
+                  name="category"
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    handleInputChange("category", value)
+                  }
+                  required
+                >
+                  <SelectTrigger
+                    className="w-full"
+                    disabled={!categories?.data?.length}
+                  >
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -174,6 +259,8 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
               <Input
                 name="address"
                 placeholder="Enter address"
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
                 required
                 className="w-full"
               />
@@ -185,39 +272,13 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
               <Input
                 name="phone"
                 placeholder="Enter phone number"
+                value={formData.phone}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
                 required
                 className="w-full"
               />
             </div>
           </div>
-
-          {/* Coordinates (Optional) */}
-          {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Latitude
-              </label>
-              <Input
-                name="lat"
-                type="number"
-                step="any"
-                placeholder="e.g. 23.8103"
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Longitude
-              </label>
-              <Input
-                name="lng"
-                type="number"
-                step="any"
-                placeholder="e.g. 90.4125"
-                className="w-full"
-              />
-            </div>
-          </div> */}
 
           {/* Facilities */}
           <div>
@@ -230,7 +291,9 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
                   <Input
                     placeholder="Add facility"
                     value={value}
-                    onChange={(e) => handleFacilityChange(index, e.target.value)}
+                    onChange={(e) =>
+                      handleFacilityChange(index, e.target.value)
+                    }
                     className="flex-1"
                   />
                   {facilityInputs.length > 1 && (
@@ -274,7 +337,7 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
                 type="button"
                 variant="outline"
                 onClick={() => imageInputRef.current?.click()}
-                className="text-orange-500 border-orange-500 hover:bg-orange-50"
+                className="bg-orange-50"
               >
                 <Upload className="h-4 w-4 mr-2" /> Choose Images
               </Button>
@@ -287,7 +350,7 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
           </div>
 
           {/* Video Upload */}
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Upload Video (Optional)
             </label>
@@ -312,7 +375,7 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
                 </p>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-4 pt-6">
@@ -328,7 +391,7 @@ export function ServiceForm({ onSubmit: onSuccess, onCancel }: ServiceFormProps)
               type="submit"
               className="bg-orange-500 hover:bg-orange-600 text-white px-8"
             >
-              Create Service
+              {isEdit ? "Update Service" : "Create Service"}
             </Button>
           </div>
         </form>
