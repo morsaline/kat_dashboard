@@ -1,4 +1,3 @@
- 
 "use client";
 
 import { useState } from "react";
@@ -8,18 +7,25 @@ import Image from "next/image";
 import EditProfile from "./Edit_profileModal";
 import ChangePasswordForm from "./ChangePassword";
 import profilePhoto from "@/assets/image/hd.jpg"; // fallback image
-import { useGetmeQuery } from "@/redux/features/users/usersApi";
+import { useGetmeQuery, useUpdateProfilePictureMutation } from "@/redux/features/users/usersApi";
+import { toast } from "sonner";
 
 const ProfileInterface = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
 
-  const { data: userData, isLoading, isError } = useGetmeQuery({});
+  const {
+    data: userData,
+    isLoading,
+    isError,
+    refetch, // 👈 so we can refresh after upload
+  } = useGetmeQuery({});
+  const [updateProfilePicture, { isLoading: isUploading }] =
+    useUpdateProfilePictureMutation();
 
   // Extract user info safely
   const user = userData?.data;
 
-  // Fallback values if data not loaded yet
   const fullName = user?.fullName || "User Name";
   const email = user?.email || "Not provided";
   const phoneNumber = user?.phoneNumber || "Not provided";
@@ -27,8 +33,8 @@ const ProfileInterface = () => {
   const about = user?.about || "No introduction available.";
   const profileImage = user?.profileImage ? user.profileImage.trim() : "";
 
-  // Handle file selection (for local preview only)
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // File upload handler
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -43,15 +49,25 @@ const ProfileInterface = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setUploadedImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // show preview immediately
+    setUploadedImage(URL.createObjectURL(file));
+
+    try {
+    const response =  await updateProfilePicture(file).unwrap();
+
+      if (response?.success) {
+toast.success(response.message);
+      }else {
+        toast.error(response.message);
+      }
+      await refetch(); // refresh user data from backend
+    } catch (err) {
+      console.error("Failed to upload image:", err);
+    toast.error("Failed to upload image. Please try again.");
+    }
   };
 
-  // Use uploaded image first, then server image, then fallback
-  const imageUrl = uploadedImage || (profileImage && profileImage) || profilePhoto.src;
+  const imageUrl = uploadedImage || profileImage || profilePhoto.src;
 
   const handleUploadClick = () => {
     document.getElementById("profile-upload-input")?.click();
@@ -68,7 +84,9 @@ const ProfileInterface = () => {
   if (isError) {
     return (
       <div className="min-h-screen bg-background p-6 flex justify-center items-center">
-        <p className="text-lg text-red-600">Failed to load profile. Please try again later.</p>
+        <p className="text-lg text-red-600">
+          Failed to load profile. Please try again later.
+        </p>
       </div>
     );
   }
@@ -85,9 +103,9 @@ const ProfileInterface = () => {
         {/* Profile Card */}
         <Card className="p-8 shadow-sm border border-border rounded-md bg-white">
           <div className="flex items-start justify-between">
-            {/* Left Side: Avatar + Name & Intro */}
+            {/* Left Side */}
             <div className="flex gap-6 flex-1">
-              {/* Profile Photo with Edit Overlay */}
+              {/* Profile Photo */}
               <div className="relative group">
                 <Image
                   src={imageUrl}
@@ -97,13 +115,17 @@ const ProfileInterface = () => {
                   className="w-24 h-24 rounded-full object-cover border-4 border-gray-100 shadow-sm"
                 />
 
-                {/* Edit Overlay - appears on hover */}
+                {/* Edit Overlay */}
                 <div
                   className="absolute inset-0 rounded-full bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
                   onClick={handleUploadClick}
                 >
                   <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md">
-                    <Edit2 className="w-5 h-5 text-gray-700" />
+                    {isUploading ? (
+                      <span className="text-xs text-gray-600">...</span>
+                    ) : (
+                      <Edit2 className="w-5 h-5 text-gray-700" />
+                    )}
                   </div>
                 </div>
 
@@ -121,13 +143,15 @@ const ProfileInterface = () => {
               <div className="space-y-2 flex-1">
                 <h2 className="text-xl font-bold text-gray-900">{fullName}</h2>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-medium text-gray-600">Introduction:</h3>
+                  <h3 className="text-sm font-medium text-gray-600">
+                    Introduction:
+                  </h3>
                   <p className="text-sm text-gray-700 leading-relaxed">{about}</p>
                 </div>
               </div>
             </div>
 
-            {/* Right Side: Contact Info + Edit Button */}
+            {/* Right Side */}
             <div className="min-w-[220px] relative">
               {/* Edit Profile Button */}
               <button
