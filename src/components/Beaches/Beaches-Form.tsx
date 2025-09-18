@@ -29,8 +29,8 @@ export function BeachForm({
     phone: beach?.phone || "",
     facilities: beach?.facilities || [],
     images: beach?.images || "",
-    lat: 0,
-    lng: 0,
+    lat: beach?.lat || 0,
+    lng: beach?.lng || 0,
   });
 
   const [facilityInput, setFacilityInput] = useState("");
@@ -41,21 +41,21 @@ export function BeachForm({
     }
   };
 
-  const handleAddFacility = () => {
-    if (!facilityInput.trim()) return;
-    setFormData((prev) => ({
-      ...prev,
-      facilities: [...prev.facilities, facilityInput.trim()],
-    }));
-    setFacilityInput("");
-  };
+  // const handleAddFacility = () => {
+  //   if (!facilityInput.trim()) return;
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     facilities: [...prev.facilities, facilityInput.trim()],
+  //   }));
+  //   setFacilityInput("");
+  // };
 
-  const handleRemoveFacility = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      facilities: prev.facilities.filter((_, i) => i !== index),
-    }));
-  };
+  // const handleRemoveFacility = (index: number) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     facilities: prev.facilities.filter((_, i) => i !== index),
+  //   }));
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +96,7 @@ export function BeachForm({
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  fashionName: e.target.value,
+                  beacheName: e.target.value,
                 }))
               }
             />
