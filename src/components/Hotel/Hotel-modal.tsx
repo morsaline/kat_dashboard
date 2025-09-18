@@ -1,12 +1,23 @@
 "use client";
-import { Hotel } from "@/app/(DashboardLayout)/dashboard/hotels/page";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { X, Star, Phone, MapPin } from "lucide-react";
+import { HotelData } from "@/redux/features/hotel/hotelApi";
+// import { X, Star, Phone, MapPin } from "lucide-react";
+import {
+  BedDouble,
+  Bath,
+  Car,
+  Wifi,
+  Utensils,
+  X,
+  Phone,
+  MapPin,
+} from "lucide-react";
 import Image from "next/image";
 
 interface HotelModalProps {
-  hotel: Hotel;
+  hotel: HotelData;
   onClose: () => void;
 }
 
@@ -30,7 +41,7 @@ export function HotelModal({ hotel, onClose }: HotelModalProps) {
               <div className="space-y-4">
                 <div className="aspect-video rounded-lg overflow-hidden relative">
                   <Image
-                    src={hotel.productImage || "/placeholder.svg"}
+                    src={hotel.hotelImage || "/placeholder.svg"}
                     alt={hotel.name}
                     fill
                     className="object-cover"
@@ -44,8 +55,8 @@ export function HotelModal({ hotel, onClose }: HotelModalProps) {
                       className="aspect-square rounded-md overflow-hidden relative"
                     >
                       <Image
-                        src={room.picture || "/placeholder.svg"}
-                        alt={room.name}
+                        src={room.roomPictures[0] || "/placeholder.svg"}
+                        alt={room.roomName}
                         fill
                         className="object-cover"
                       />
@@ -73,59 +84,56 @@ export function HotelModal({ hotel, onClose }: HotelModalProps) {
 
                 {/* Room Items styled as cards */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold">Rooms</h4>
-                  {hotel.rooms.slice(0, 2).map((room, index) => (
+                  {hotel?.rooms.map((room) => (
                     <div
-                      key={index}
-                      className="flex items-center justify-between border rounded-lg p-3 hover:shadow-sm transition"
+                      key={room.id}
+                      className="flex items-center gap-4 bg-white shadow rounded-lg p-4"
                     >
-                      <div className="flex-1 space-y-1">
-                        <h4 className="font-semibold text-sm">{room.name}</h4>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3 w-3 ${
-                                i < 4
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
-                          <span>(2,395 reviews)</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {room.beds && (
-                            <span className="bg-gray-100 text-xs px-2 py-0.5 rounded-full">
-                              {room.beds}
+                      {/* ✅ Next.js Image */}
+                      <div className="relative w-32 h-24">
+                        <Image
+                          src={room.roomPictures[0]}
+                          alt={room.roomName}
+                          fill
+                          className="rounded-lg object-cover"
+                          sizes="(max-width: 768px) 100vw, 200px"
+                        />
+                      </div>
+
+                      {/* Room Details */}
+                      <div className="flex flex-col justify-center">
+                        <h2 className="text-lg font-semibold">
+                          {room.roomName}
+                        </h2>
+
+                        <div className="flex flex-wrap items-center gap-4 text-gray-700 text-sm mt-1">
+                          <span className="flex items-center gap-1">
+                            <BedDouble size={16} /> {room.beds} Rooms
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Bath size={16} /> {room.washrooms} Washroom
+                          </span>
+
+                          {/* Conditionally render features */}
+                          {room.parking && (
+                            <span className="flex items-center gap-1">
+                              <Car size={16} /> Parking
                             </span>
                           )}
-                          {room.washroom && (
-                            <span className="bg-gray-100 text-xs px-2 py-0.5 rounded-full">
-                              {room.washroom}
+                          {room.breakfast && (
+                            <span className="flex items-center gap-1">
+                              <Utensils size={16} /> Breakfast Included
                             </span>
                           )}
                           {room.wifi && (
-                            <span className="bg-gray-100 text-xs px-2 py-0.5 rounded-full">
-                              {room.wifi}
+                            <span className="flex items-center gap-1">
+                              <Wifi size={16} /> Wifi
                             </span>
                           )}
                         </div>
                       </div>
-
-                      <div className="w-20 h-20 relative rounded-lg overflow-hidden ml-4">
-                        <Image
-                          src={room.picture || "/placeholder.svg"}
-                          alt={room.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
                     </div>
                   ))}
-                  <p className="text-sm text-primary cursor-pointer hover:underline">
-                    See More
-                  </p>
                 </div>
 
                 {/* Contact Info */}

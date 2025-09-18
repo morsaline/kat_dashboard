@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import type React from "react";
@@ -8,16 +9,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Upload, Plus, X, ArrowLeft } from "lucide-react";
-import { Hotel, Room } from "@/app/(DashboardLayout)/dashboard/hotels/page";
+// import { Hotel, Room } from "@/app/(DashboardLayout)/dashboard/hotels/page";
 import Image from "next/image";
 import {
   useCrateMultipleUploadFileMutation,
   useCrateSingleUploadFileMutation,
 } from "@/redux/features/image/imageApi";
+import { HotelData, RoomData } from "@/redux/features/hotel/hotelApi";
+import { fetchLatLng } from "../Restaurant/AddRestaurants";
 
 interface HotelFormProps {
-  hotel?: Hotel;
-  onSubmit: (hotel: Hotel | Omit<Hotel, "id">) => void;
+  hotel?: HotelData;
+  onSubmit: (hotel: HotelData | Omit<HotelData, "id">) => void;
   onCancel: () => void;
   isEditing?: boolean;
 }
@@ -36,27 +39,29 @@ export function HotelForm({
     instagram: hotel?.instagram || "",
     phone: hotel?.phone || "",
     description: hotel?.description || "",
-    productImage: hotel?.productImage || (null as string | null),
+    hotelImage: hotel?.hotelImage || (null as string | null),
   });
-
-const [rooms, setRooms] = useState<Room[]>(
-  hotel?.rooms ?? [
-    {
-      id: "1",
-      name: "",
-      beds: "",
-      washroom: "",
-      parking: "",
-      gym: "",
-      swimming: "",
-      wifi: "",
-      breakfast: "",
-      roomPictures: [],
-      pictures: [], // Add this line
-      picture: "", // Add this line
-    },
-  ]
-);
+  const [rooms, setRooms] = useState<RoomData[]>(
+    hotel?.rooms || [
+      {
+        id: "",
+        roomName: "",
+        beds: 0,
+        washrooms: 0,
+        parking: false,
+        gym: false,
+        swimmingPool: false,
+        wifi: false,
+        ac: false,
+        breakfast: false,
+        price: 0,
+        roomPictures: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hotelId: "", // will assign hotel id later
+      },
+    ]
+  );
 
   const [crateSingleUploadFile] = useCrateSingleUploadFileMutation();
   const [crateMultipleUploadFile] = useCrateMultipleUploadFileMutation();
@@ -64,30 +69,38 @@ const [rooms, setRooms] = useState<Room[]>(
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
-
-  const handleRoomChange = (index: number, field: string, value: string) => {
-    setRooms((prev) =>
-      prev.map((room, i) => (i === index ? { ...room, [field]: value } : room))
-    );
+  const handleRoomChange = <K extends keyof RoomData>(
+    index: number,
+    field: K,
+    value: RoomData[K] // matches the type in RoomData
+  ) => {
+    const updatedRooms = [...rooms];
+    updatedRooms[index][field] = value;
+    setRooms(updatedRooms);
   };
 
-const addRoom = () => {
-  // setRooms((prev) => [
-  //   ...prev,
-  //   {
-  //     id: Date.now().toString(),
-  //     name: "",
-  //     beds: "",
-  //     washroom: "",
-  //     parking: "",
-  //     gym: "",
-  //     swimming: "",
-  //     wifi: "",
-  //     breakfast: "",
-  //     roomPictures: [],
-  //   },
-  // ]);
-};
+  const addRoom = () => {
+    setRooms((prev) => [
+      ...prev,
+      {
+        id: "",
+        roomName: "",
+        beds: 0,
+        washrooms: 0,
+        parking: false,
+        gym: false,
+        swimmingPool: false,
+        wifi: false,
+        ac: false,
+        breakfast: false,
+        price: 0,
+        roomPictures: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        hotelId: "", // will assign hotel id later
+      },
+    ]);
+  };
 
   const removeRoom = (index: number) => {
     if (rooms.length > 1) {
@@ -121,11 +134,13 @@ const addRoom = () => {
 
     try {
       const uploadedUrl = await crateSingleUploadFile(formDataUpload).unwrap();
+      console.log(uploadedUrl, "response");
       const finalUrl: string = Array.isArray(uploadedUrl)
         ? uploadedUrl[0]
         : uploadedUrl?.data || null;
+      console.log(finalUrl, "final Url");
 
-      setFormData((prev) => ({ ...prev, productImage: finalUrl }));
+      setFormData((prev) => ({ ...prev, hotelImage: finalUrl }));
       setPreviewImage(null);
     } catch (error) {
       console.error("Upload failed:", error);
@@ -199,21 +214,34 @@ const addRoom = () => {
         i === roomIndex
           ? {
               ...room,
-              roomPictures: room.roomPictures.filter((img) => img !== imgUrl),
+              roomPictures: room.roomPictures.filter(
+                (img: any) => img !== imgUrl
+              ),
             }
           : room
       )
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const hotelData = {
       ...formData,
       rooms,
       ...(isEditing && hotel ? { id: hotel.id } : {}),
     };
-    onSubmit(hotelData as Hotel);
+
+    const { lat, lng } = await fetchLatLng(formData.address);
+    const payload: HotelData = {
+      ...hotelData,
+      // hotelId: generateId(),
+      lat,
+      lng,
+      type: "POSADAS",
+      averageRating: 0,
+      hotelImage: formData?.hotelImage || "",
+    };
+    onSubmit(payload);
   };
 
   return (
@@ -331,11 +359,11 @@ const addRoom = () => {
 
             {/* Product Image */}
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              {previewImage || formData.productImage ? (
+              {previewImage || formData.hotelImage ? (
                 <>
                   <div className="relative w-48 h-48 mx-auto mb-2">
                     <Image
-                      src={previewImage || formData.productImage!}
+                      src={previewImage || formData.hotelImage!}
                       alt="Product"
                       fill
                       className="rounded-lg object-cover"
@@ -392,6 +420,7 @@ const addRoom = () => {
                   key={room.id}
                   className="p-4 border rounded-lg mb-4 space-y-4"
                 >
+                  {/* Header */}
                   <div className="flex justify-between items-center">
                     <h4 className="font-medium">Room Name*</h4>
                     {rooms.length > 1 && (
@@ -406,75 +435,129 @@ const addRoom = () => {
                     )}
                   </div>
 
+                  {/* Text Inputs */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       placeholder="Room name"
-                      value={room.name}
+                      value={room.roomName}
                       onChange={(e) =>
-                        handleRoomChange(index, "name", e.target.value)
+                        handleRoomChange(index, "roomName", e.target.value)
                       }
                       required
                     />
                     <Input
+                      type="number"
                       placeholder="Beds"
                       value={room.beds}
                       onChange={(e) =>
-                        handleRoomChange(index, "beds", e.target.value)
+                        handleRoomChange(
+                          index,
+                          "beds",
+                          parseInt(e.target.value)
+                        )
                       }
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
-                      placeholder="Washroom"
-                      value={room.washroom}
+                      type="number"
+                      placeholder="Washrooms"
+                      value={room.washrooms}
                       onChange={(e) =>
-                        handleRoomChange(index, "washroom", e.target.value)
+                        handleRoomChange(
+                          index,
+                          "washrooms",
+                          parseInt(e.target.value)
+                        )
                       }
                     />
                     <Input
-                      placeholder="Parking"
-                      value={room.parking}
+                      type="number"
+                      placeholder="Price"
+                      value={room.price}
                       onChange={(e) =>
-                        handleRoomChange(index, "parking", e.target.value)
+                        handleRoomChange(
+                          index,
+                          "price",
+                          parseFloat(e.target.value)
+                        )
                       }
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      placeholder="Gym"
-                      value={room.gym}
-                      onChange={(e) =>
-                        handleRoomChange(index, "gym", e.target.value)
-                      }
-                    />
-                    <Input
-                      placeholder="Swimming"
-                      value={room.swimming}
-                      onChange={(e) =>
-                        handleRoomChange(index, "swimming", e.target.value)
-                      }
-                    />
+                  {/* Boolean Options */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={room.parking}
+                        onChange={(e) =>
+                          handleRoomChange(index, "parking", e.target.checked)
+                        }
+                      />
+                      <span>Parking</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={room.gym}
+                        onChange={(e) =>
+                          handleRoomChange(index, "gym", e.target.checked)
+                        }
+                      />
+                      <span>Gym</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={room.swimmingPool}
+                        onChange={(e) =>
+                          handleRoomChange(
+                            index,
+                            "swimmingPool",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      <span>Swimming Pool</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={room.ac}
+                        onChange={(e) =>
+                          handleRoomChange(index, "ac", e.target.checked)
+                        }
+                      />
+                      <span>AC</span>
+                    </label>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      placeholder="Wifi"
-                      value={room.wifi}
-                      onChange={(e) =>
-                        handleRoomChange(index, "wifi", e.target.value)
-                      }
-                    />
-                    <Input
-                      placeholder="Breakfast"
-                      value={room.breakfast}
-                      onChange={(e) =>
-                        handleRoomChange(index, "breakfast", e.target.value)
-                      }
-                    />
+                  <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={room.wifi}
+                        onChange={(e) =>
+                          handleRoomChange(index, "wifi", e.target.checked)
+                        }
+                      />
+                      <span>Wifi</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={room.breakfast}
+                        onChange={(e) =>
+                          handleRoomChange(index, "breakfast", e.target.checked)
+                        }
+                      />
+                      <span>Breakfast</span>
+                    </label>
                   </div>
 
+                  {/* Room Pictures */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Room Pictures</Label>
                     <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">

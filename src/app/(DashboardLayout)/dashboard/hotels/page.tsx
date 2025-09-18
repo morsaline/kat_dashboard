@@ -3,106 +3,127 @@
 import { HotelForm } from "@/components/Hotel/Hotel-From";
 import { HotelList } from "@/components/Hotel/Hotel-List";
 import { HotelModal } from "@/components/Hotel/Hotel-modal";
+import {
+  HotelData,
+  RoomData,
+  useCreateHotelMutation,
+  useDeleteSingleHotelMutation,
+  useGetAllHotelsQuery,
+  useUpdateSingleHotelMutation,
+} from "@/redux/features/hotel/hotelApi";
+import { Loader } from "lucide-react";
 import { useState } from "react";
-
-export interface Hotel {
-  id: string;
-  hotelId: string;
-  name: string;
-  address: string;
-  whatsapp: string;
-  instagram: string;
-  phone: string;
-  description: string;
-  productImage: string;
-  rooms: Room[];
-}
-
-export interface Room {
-  id: string;
-  name: string;
-  beds: string;
-  washroom: string;
-  pictures: string[];
-  parking: string;
-  gym: string;
-  swimming: string;
-  wifi: string;
-  breakfast: string;
-  picture: string;
-  roomPictures: string[];
-}
+import { toast } from "sonner";
 
 export default function HotelManagement() {
-  const [hotels, setHotels] = useState<Hotel[]>([
-    {
-      id: "H001",
-      hotelId: "H001",
-      name: "Sunset Paradise Hotel",
-      address: "Miami Beach, Florida",
-      whatsapp: "0771002345",
-      instagram: "@sunsetparadise",
-      phone: "0123456789",
-      description: "A vibrant hotel with stunning sunsets and beach access.",
-      productImage: "/images/hotel/luxury-hotel-exterior.png",
-      rooms: [
-        {
-          id: "1",
-          name: "Deluxe Ocean View",
-          beds: "2 Queen Beds",
-          washroom: "En-suite",
-          parking: "Available",
-          gym: "24/7 Access",
-          swimming: "Pool Access",
-          wifi: "Free WiFi",
-          breakfast: "Included",
-          picture: "/images/hotel/business-hotel-room.png", // Add this line
-          pictures: ["/images/hotel/business-hotel-room.png"],
-          roomPictures: ["/images/hotel/business-hotel-room.png"],
-        },
-      ],
-    },
-    // ... other hotels
-  ]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteHotel] = useDeleteSingleHotelMutation();
+
+  const itemsPerPage = 10;
+
+  const { data: allHotels, isLoading } = useGetAllHotelsQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchTerm,
+  });
+
+  const hotels: HotelData[] =
+    allHotels?.data?.data.map((hotel: HotelData) => ({
+      id: hotel.id,
+      name: hotel.name,
+      hotelId: hotel.hotelId, // optional but included
+      address: hotel.address,
+      lat: hotel.lat,
+      lng: hotel.lng,
+      whatsapp: hotel.whatsapp,
+      instagram: hotel.instagram,
+      phone: hotel.phone,
+      type: hotel.type,
+      averageRating: hotel.averageRating,
+      description: hotel.description,
+      hotelImage: hotel.hotelImage, // ✅ must stay `hotelImage`
+      rooms: hotel.rooms.map((room: RoomData) => ({
+        id: room.id,
+        roomName: room.roomName, // ✅ must stay `roomName`
+        beds: room.beds,
+        washrooms: room.washrooms,
+        parking: room.parking,
+        gym: room.gym,
+        swimmingPool: room.swimmingPool,
+        wifi: room.wifi,
+        ac: room.ac,
+        breakfast: room.breakfast,
+        price: room.price,
+        roomPictures: room.roomPictures, // ✅ must stay `roomPictures`
+        createdAt: room.createdAt,
+        updatedAt: room.updatedAt,
+        hotelId: room.hotelId,
+      })),
+    })) || [];
+
+  const [createHotel, { isLoading: addHotelLoading }] =
+    useCreateHotelMutation();
+  const [updateSingleHotel, { isLoading: updateHotelLoading }] =
+    useUpdateSingleHotelMutation();
 
   const [currentView, setCurrentView] = useState<"list" | "add" | "edit">(
     "list"
   );
-  const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
-  const [editingHotel, setEditingHotel] = useState<Hotel | null>(null);
+  const [selectedHotel, setSelectedHotel] = useState<HotelData | null>(null);
+  const [editingHotel, setEditingHotel] = useState<HotelData | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const handleSubmit = (hotel: Hotel | Omit<Hotel, "id">) => {
+  const handleSubmit = (hotel: HotelData | Omit<HotelData, "id">) => {
     if ("id" in hotel) {
       // Edit
-      setHotels(hotels.map((h) => (h.id === hotel.id ? hotel : h)));
+      if (!hotel.id) {
+        throw new Error("Hotel ID is required");
+      }
+      // setHotels(hotels.map((h) => (h.id === hotel.id ? hotel : h)));
+      updateSingleHotel({ id: hotel?.id, body: hotel }).unwrap();
+      toast.success("update hotel succesfully");
+      // hotelRefecth();
       setEditingHotel(null);
     } else {
       console.log(hotel, "add hotels");
       // Add
-      const newHotel: Omit<Hotel, "id"> = {
+      const newHotel: Omit<HotelData, "id"> = {
         ...hotel,
         hotelId: `H${String(Date.now()).slice(-3).padStart(3, "0")}`,
       };
+      try {
+        const res = createHotel(newHotel).unwrap();
+        toast.success("add hotel succesfully");
+        console.log("hotelResponse ", res);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+      } catch (error: any) {}
       console.log(newHotel, "hotel Data");
       // setHotels([...hotels, newHotel]);
     }
     setCurrentView("list");
   };
 
-  const handleDeleteHotel = (id: string) => {
-    setHotels(hotels.filter((h) => h.id !== id));
+  const handleDeleteHotel = async (id: string) => {
+    try {
+      await deleteHotel(id).unwrap(); // unwrap to handle errors
+      console.log("Hotel deleted successfully");
+    } catch (err) {
+      console.error("Failed to delete hotel", err);
+    }
   };
 
-  const handleViewDetails = (hotel: Hotel) => {
+  const handleViewDetails = (hotel: HotelData) => {
     setSelectedHotel(hotel);
     setShowModal(true);
   };
 
-  const handleEditClick = (hotel: Hotel) => {
+  const handleEditClick = (hotel: HotelData) => {
     setEditingHotel(hotel);
     setCurrentView("edit");
   };
+
+  if (isLoading) return <Loader />;
 
   return (
     <div className="min-h-screen bg-background">
@@ -115,6 +136,11 @@ export default function HotelManagement() {
             onEdit={handleEditClick}
             onDelete={handleDeleteHotel}
             onViewDetails={handleViewDetails}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalPages={allHotels?.data?.meta?.totalPages || 1}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
           />
         )}
 
