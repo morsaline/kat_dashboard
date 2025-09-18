@@ -33,6 +33,8 @@ export function ServiceForm({
     name: service?.name || "",
     category: service?.category || "",
     address: service?.address || "",
+    lat: service?.lat || 0,
+    lng: service?.lng || 0,
     phone: service?.phone || "",
     facilities: service?.facilities || [""],
     image: service?.image || "",
@@ -73,16 +75,16 @@ export function ServiceForm({
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const filteredFacilities = formData.facilities.filter(
-      (facility) => facility.trim() !== ""
-    );
-    const serviceData = {
-      ...formData,
-      facilities: filteredFacilities,
-      ...(isEdit && service ? { id: service.id } : {}),
-    };
-    onSubmit(serviceData);
+    // e.preventDefault();
+    // const filteredFacilities = formData.facilities.filter(
+    //   (facility) => facility.trim() !== ""
+    // );
+    // const serviceData = {
+    //   ...formData,
+    //   facilities: filteredFacilities,
+    //   ...(isEdit && service ? { id: service.id } : {}),
+    // };
+    // onSubmit(serviceData);
   };
 
   const categories = [
