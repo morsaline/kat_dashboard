@@ -37,7 +37,7 @@ export default function TouristSpotsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { data, isLoading, isError } = useGetAllTouristSportsQuery({
+  const { data, isLoading} = useGetAllTouristSportsQuery({
     page: currentPage,
     limit: itemsPerPage,
     search: searchTerm,
