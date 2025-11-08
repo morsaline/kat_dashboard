@@ -1,4 +1,4 @@
-import { DashboardOverview } from "@/components/Dashboard/dashboard-overview";
+import DashboardOverview from "@/components/Dashboard/dashboard-overview/DashboardOverview";
 import React from "react";
 
 const page = () => {
