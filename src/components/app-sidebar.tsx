@@ -2,17 +2,10 @@
 
 import type * as React from "react";
 import {
-  Users,
   LayoutDashboard,
-  UtensilsCrossed,
+  ListOrderedIcon,
   Building,
-  MapPin,
-  Wrench,
-  Handbag,
-  TreePalm,
-  Wine,
-  Star,
-  Settings,
+  Users2,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -32,9 +25,9 @@ const data = {
   },
   teams: [
     {
-      name: "BUZIOS GO",
-      logo: () => <span className="font-bold">B</span>,
-      plan: "Enterprise",
+      name: "Ohboy",
+      logo: () => <span className="font-bold">Bddddddd</span>,
+      plan: "eccoommerce",
     },
   ],
 
@@ -45,54 +38,19 @@ const data = {
       icon: LayoutDashboard,
     },
     {
-      title: "User",
-      url: "/dashboard/user-list",
-      icon: Users,
+      title: "Orders",
+      url: "/dashboard/orders",
+      icon: ListOrderedIcon,
     },
     {
-      title: "Restaurants List",
-      url: "/dashboard/restaurants",
-      icon: UtensilsCrossed,
+      title: "Users",
+      url: "/dashboard/users",
+      icon: Users2,
     },
     {
-      title: "Hotels List",
-      url: "/dashboard/hotels",
+      title: "Products",
+      url: "/dashboard/products",
       icon: Building,
-    },
-    {
-      title: "Tourist Spot List",
-      url: "/dashboard/tourist-spots",
-      icon: MapPin,
-    },
-    {
-      title: "Service List",
-      url: "/dashboard/services",
-      icon: Wrench,
-    },
-    {
-      title: "Fashion",
-      url: "/dashboard/fashions",
-      icon: Handbag,
-    },
-    {
-      title: "Beaches",
-      url: "/dashboard/beaches",
-      icon: TreePalm,
-    },
-    {
-      title: "Bars",
-      url: "/dashboard/bars",
-      icon: Wine,
-    },
-    {
-      title: "Review",
-      url: "/dashboard/reviews",
-      icon: Star,
-    },
-    {
-      title: "Setting",
-      url: "/dashboard/settings",
-      icon: Settings,
     },
   ],
 };

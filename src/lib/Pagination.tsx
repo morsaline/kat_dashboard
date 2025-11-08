@@ -8,7 +8,7 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  maxVisiblePages?: number; // optional, default 5
+  maxVisiblePages?: number;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
@@ -43,13 +43,14 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-center mt-4 space-x-2">
+    <div className="flex items-center justify-center mt-6 space-x-2">
       {/* Previous */}
       <Button
         variant="ghost"
         size="sm"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
+        className="border border-sky-400 text-sky-500 hover:bg-sky-50 hover:text-sky-600 transition-all"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
@@ -60,7 +61,11 @@ const Pagination: React.FC<PaginationProps> = ({
           key={pageNum}
           size="sm"
           variant={currentPage === pageNum ? "default" : "ghost"}
-          className={currentPage === pageNum ? "bg-orange-500 text-white" : ""}
+          className={`border border-sky-400 transition-all ${
+            currentPage === pageNum
+              ? "bg-sky-400 text-white hover:bg-sky-500"
+              : "text-sky-500 hover:bg-sky-50 hover:text-sky-600"
+          }`}
           onClick={() => onPageChange(pageNum)}
         >
           {pageNum}
@@ -73,6 +78,7 @@ const Pagination: React.FC<PaginationProps> = ({
         size="sm"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
+        className="border border-sky-400 text-sky-500 hover:bg-sky-50 hover:text-sky-600 transition-all"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>

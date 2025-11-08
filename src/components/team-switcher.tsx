@@ -8,7 +8,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
-import Logo from "@/assets/logo/Logo.png";
+import Logo from "@/assets/logo/logo.png.png";
 import Link from "next/link";
 import { logout } from "@/redux/features/auth/authSlice";
 import { useAppDispatch } from "@/hooks/hooks";
@@ -53,8 +53,11 @@ export function TeamSwitcher({
       <div className="absolute bottom-4 left-4 right-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} className="text-red-500 cursor-pointer hover:bg-red-50 hover:text-red-600 justify-start border-1 border-red-500">
-              <LogOut  className="w-4 h-4" />
+            <SidebarMenuButton
+              onClick={handleLogout}
+              className="text-black cursor-pointer hover:bg-[#b2f7f5]  justify-start border-1 border-[#b2f7f5]"
+            >
+              <LogOut className="w-4 h-4" />
               <span>Log out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>

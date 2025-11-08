@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SidebarTrigger } from "./ui/sidebar";
+// import { SidebarTrigger } from "./ui/sidebar";
 import { Separator } from "./ui/separator";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { useAppSelector } from "@/hooks/hooks";
@@ -32,7 +32,7 @@ const AppHeader = () => {
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 bg-white border-b px-4">
       {/* Left Side */}
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="-ml-1" />
+        {/* <SidebarTrigger className="-ml-1" /> */}
         <Separator orientation="vertical" className="h-4" />
         <h1 className="text-lg font-medium text-gray-900">
           Welcome Back, {displayName}
