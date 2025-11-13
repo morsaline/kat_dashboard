@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const baseApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://10.0.10.66:5002/api/v1",
+    baseUrl: "http://178.128.254.246:12022/api/v1",
     // baseUrl: "https://seoagenciaseo-backend.onrender.com/api/v1",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as any).auth.token;
@@ -14,23 +14,6 @@ export const baseApi = createApi({
       return headers;
     },
   }),
-  tagTypes: [
-    "User",
-    "Posadas",
-    "Post",
-    "Auth",
-    "Advertisement",
-    "Sponsor",
-    "Restaurants",
-    "overview",
-    "Hotel",
-    "Tourist",
-    "Bar",
-    "Beach",
-    "Fashion",
-    "Review",
-    "ServiceList",
-    "TouristSpots",
-  ],
+  tagTypes: ["User", "Posadas", "Post", "Auth", "Products"],
   endpoints: () => ({}),
 });

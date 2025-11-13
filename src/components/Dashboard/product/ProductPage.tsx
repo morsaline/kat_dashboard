@@ -1,10 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Pagination from "@/lib/Pagination";
+import {
+  useDeleteProductMutation,
+  useGetProductsQuery,
+} from "@/redux/features/product/productApi";
 import { Ellipsis, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 
 const ProductPage = () => {
   const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(
@@ -13,95 +19,43 @@ const ProductPage = () => {
   const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null); // Modal delete ID
+  const limit = 10;
 
-  // --- Example Data ---
-  // --- Example Data ---
-  // Use useMemo to make products stable across renders
-  const products = useMemo(
-    () => [
-      {
-        id: "The Burger Store",
-        picture: "/dyson.png",
-        name: "Dyson Air",
-        price: 2000,
-      },
-      {
-        id: "The Burger Fairy",
-        picture: "/panda.png",
-        name: "Panda Burger",
-        price: 3330,
-      },
-      {
-        id: "Burger Hub",
-        picture: "/beats.png",
-        name: "Beats Burger",
-        price: 6000,
-      },
-      {
-        id: "The Burger Palace",
-        picture: "/panda.png",
-        name: "Palace Burger",
-        price: 2700,
-      },
-      {
-        id: "Burger King",
-        picture: "/dyson.png",
-        name: "Royal Burger",
-        price: 3500,
-      },
-      {
-        id: "Burger Bros",
-        picture: "/beats.png",
-        name: "Bro Burger",
-        price: 1800,
-      },
-      {
-        id: "The Burger Queen",
-        picture: "/dyson.png",
-        name: "Queen Burger",
-        price: 4500,
-      },
-      {
-        id: "Burger Zone",
-        picture: "/panda.png",
-        name: "Zone Special",
-        price: 3900,
-      },
-    ],
-    [] // 👈 no dependencies — only created once
-  );
+  // ✅ Fetch products
+  const { data, isLoading, isError, refetch } = useGetProductsQuery({
+    page: 1,
+    limit: 1000, // fetch all for client-side filtering
+  });
+
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+
+  const products = data?.data?.data ?? [];
 
   const filteredProducts = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.id.toLowerCase().includes(q) ||
-        p.price.toString().includes(q)
-    );
+    const query = searchQuery.toLowerCase();
+    return products.filter((product: any) => {
+      return (
+        product.title?.toLowerCase().includes(query) ||
+        product.serialNumber?.toLowerCase().includes(query) ||
+        String(product.price)?.toLowerCase().includes(query)
+      );
+    });
   }, [products, searchQuery]);
 
-  // --- Pagination Setup ---
-  const itemsPerPage = 7;
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentProducts = filteredProducts.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  // ✅ Pagination
+  const totalPages = Math.ceil(filteredProducts.length / limit);
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * limit;
+    return filteredProducts.slice(start, start + limit);
+  }, [filteredProducts, currentPage, limit]);
 
-  // --- Dropdown Handlers ---
+  // ✅ Dropdown toggle
   const handleDropdownToggle = (index: number) => {
     setOpenDropdownIndex(openDropdownIndex === index ? null : index);
   };
 
-  const handleDelete = (productId: string) => {
-    alert(`Delete product ${productId}`);
-    setOpenDropdownIndex(null);
-  };
-
-  // --- Close dropdown when clicking outside ---
+  // ✅ Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -112,99 +66,100 @@ const ProductPage = () => {
         setOpenDropdownIndex(null);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openDropdownIndex]);
+
+  // ✅ Loading & Error states
+  if (isLoading)
+    return (
+      <p className="text-center py-10 text-gray-500">Loading products...</p>
+    );
+
+  if (isError)
+    return (
+      <p className="text-center py-10 text-red-500">
+        Failed to load products. Please try again later.
+      </p>
+    );
 
   return (
     <div className="w-full border border-gray-300 p-4 rounded-md bg-gray-50 mt-5">
       <h1 className="text-xl font-bold mb-3">Products</h1>
 
       {/* Total Products Summary */}
-      <div>
-        <div className="border border-gray-200 rounded-md px-6 py-3 w-full text-center bg-[#b2f7f5] max-w-lg my-3">
-          <p className="text-gray-700 text-sm font-bold">Total Products</p>
-          <p className="text-gray-900 font-semibold text-lg mt-1">
-            {products.length}
-          </p>
-        </div>
+      <div className="border border-gray-200 rounded-md px-6 py-3 w-full text-center bg-[#b2f7f5] max-w-lg my-3">
+        <p className="text-gray-700 text-sm font-bold">Total Products</p>
+        <p className="text-gray-900 font-semibold text-lg mt-1">
+          {filteredProducts.length || 0}
+        </p>
       </div>
 
-      {/* Search and Add Button Row */}
+      {/* Search + Add Button */}
       <div className="flex justify-between items-center my-5 flex-wrap gap-3">
-        {/* Search Input */}
         <div className="relative w-full sm:w-1/2 lg:w-1/3">
           <Search className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search by name, ID or price..."
+            placeholder="Search by name, serial or price..."
             className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b2f7f5]"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setCurrentPage(1); // reset to first page when searching
+              setCurrentPage(1);
             }}
           />
         </div>
 
-        {/* Add Product Button */}
-        <Link href={"/dashboard/add-product"}>
+        <Link href="/dashboard/add-product">
           <button className="bg-[#b2f7f5] border px-4 py-2 font-medium hover:bg-[#9decea] transition">
             + Add Product
           </button>
         </Link>
       </div>
 
-      {/* Table */}
+      {/* Products Table */}
       <table className="w-full text-left border border-gray-200 bg-gray-50">
         <thead>
           <tr className="bg-[#b2f7f5] text-gray-700 text-sm">
-            <th className="py-2 px-4 font-medium border-b border-gray-200">
-              Product Id
-            </th>
-            <th className="py-2 px-4 font-medium border-b border-gray-200">
-              Product Picture
-            </th>
-            <th className="py-2 px-4 font-medium border-b border-gray-200">
-              Product Name
-            </th>
-            <th className="py-2 px-4 font-medium border-b border-gray-200">
-              Price
-            </th>
-            <th className="py-2 px-4 font-medium border-b border-gray-200">
-              Action
-            </th>
+            <th className="py-2 px-4 font-medium border-b">Image</th>
+            <th className="py-2 px-4 font-medium border-b">Title</th>
+            <th className="py-2 px-4 font-medium border-b">Serial</th>
+            <th className="py-2 px-4 font-medium border-b">Price</th>
+            <th className="py-2 px-4 font-medium border-b">Quantity</th>
+            <th className="py-2 px-4 font-medium border-b">Action</th>
           </tr>
         </thead>
-
         <tbody className="text-sm text-gray-700">
-          {currentProducts.length === 0 ? (
+          {paginatedProducts.length === 0 ? (
             <tr>
-              <td colSpan={5} className="text-center py-6 text-gray-500 italic">
+              <td colSpan={6} className="text-center py-6 text-gray-500 italic">
                 No products found.
               </td>
             </tr>
           ) : (
-            currentProducts.map((item, index) => (
+            paginatedProducts.map((item: any, index: number) => (
               <tr
-                key={index}
+                key={item.id}
                 className="border-t border-gray-200 hover:bg-gray-100"
               >
-                <td className="py-2 px-4">{item.id}</td>
-
                 <td className="py-2 px-4">
-                  <Image
-                    src={item.picture}
-                    alt="product"
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      width={40}
+                      height={40}
+                      className="object-contain rounded"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-200 rounded"></div>
+                  )}
                 </td>
-
-                <td className="py-2 px-4">{item.name}</td>
+                <td className="py-2 px-4">{item.title}</td>
+                <td className="py-2 px-4">{item.serialNumber}</td>
                 <td className="py-2 px-4">${item.price}</td>
+                <td className="py-2 px-4">{item.quantity}</td>
 
                 <td className="py-2 px-4 relative">
                   <button
@@ -221,14 +176,14 @@ const ProductPage = () => {
                       }}
                       className="absolute left-0 top-full mt-1 w-28 bg-white border border-gray-200 rounded shadow-md z-10"
                     >
-                      <Link href={"/dashboard/edit-product"}>
+                      <Link href={`/dashboard/products/single/${item.id}`}>
                         <button className="w-full text-left px-3 py-2 hover:bg-gray-100">
                           Edit
                         </button>
                       </Link>
                       <button
-                        className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                        onClick={() => handleDelete(item.id)}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-100 text-red-600"
+                        onClick={() => setDeleteId(item.id)}
                       >
                         Delete
                       </button>
@@ -246,9 +201,48 @@ const ProductPage = () => {
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       </div>
+
+      {/* ✅ Delete Confirmation Modal */}
+      {deleteId && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.5)] flex items-center justify-center z-50">
+          <div className="bg-white rounded-md p-6 w-80">
+            <h2 className="text-lg font-bold mb-4">Confirm Delete</h2>
+            <p className="mb-6">
+              Are you sure you want to delete this product?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                onClick={() => setDeleteId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={async () => {
+                  if (!deleteId) return;
+                  try {
+                    await deleteProduct(deleteId).unwrap();
+                    toast.success("Product deleted successfully");
+                    refetch();
+                  } catch (error: any) {
+                    toast.error(
+                      error?.data?.message || "Failed to delete product"
+                    );
+                  } finally {
+                    setDeleteId(null);
+                  }
+                }}
+              >
+                {isDeleting? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

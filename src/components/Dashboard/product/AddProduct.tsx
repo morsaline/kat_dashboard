@@ -1,23 +1,50 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useCreateProductMutation } from "@/redux/features/product/productApi";
 import React, { useState } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { toast } from "sonner";
 
 const AddProduct = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState<File | null>(null);
 
+  const [createProduct, { isLoading }] = useCreateProductMutation();
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setImage(file);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = { name, price, image };
 
-    alert("Product added!");
+    if (!name || !price || !image) {
+      toast.error("Please fill all fields and select an image!");
+      return;
+    }
+
+    // Create FormData for image upload
+    const formData = new FormData();
+    formData.append("title", name);
+    formData.append("price", price);
+    formData.append("image", image);
+
+    try {
+      const result = await createProduct(formData).unwrap();
+      console.log("Product created:", result);
+      toast.success("Product added successfully!");
+
+      // Reset form
+      setName("");
+      setPrice("");
+      setImage(null);
+    } catch (error: any) {
+      console.error("Error adding product:", error);
+      toast.error("Failed to add product. Try again!");
+    }
   };
 
   return (
@@ -57,16 +84,16 @@ const AddProduct = () => {
             hidden
             onChange={handleImageUpload}
           />
-
           {image ? image.name : "Upload Product picture"}
         </label>
 
         {/* Submit button */}
         <button
           type="submit"
-          className="w-full bg-[#b2f7f5]  text-black font-semibold py-2 rounded-md mt-6 transition"
+          disabled={isLoading}
+          className="w-full bg-[#b2f7f5] text-black font-semibold py-2 rounded-md mt-6 transition disabled:opacity-50"
         >
-          Add Product
+          {isLoading ? "Adding..." : "Add Product"}
         </button>
       </form>
     </div>
