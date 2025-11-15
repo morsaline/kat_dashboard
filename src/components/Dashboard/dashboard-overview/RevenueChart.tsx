@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useState, useMemo } from "react";
+import { useGetDashboardQuery } from "@/redux/features/user/userApi";
 import {
   BarChart,
   Bar,
@@ -10,26 +13,54 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { name: "1", revenue: 60 },
-  { name: "2", revenue: 60 },
-  { name: "3", revenue: 110 },
-  { name: "4", revenue: 70 },
-  { name: "5", revenue: 75 },
-  { name: "6", revenue: 80 },
-  { name: "7", revenue: 45 },
-  { name: "8", revenue: 50 },
-  { name: "9", revenue: 85 },
-  { name: "10", revenue: 80 },
-];
+type TimePeriod = "daily" | "weekly" | "monthly" | "all";
 
 export default function RevenueChart() {
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("daily");
+
+  // Fetch dashboard data based on selected timePeriod
+  const {
+    data: dashboardData,
+    isLoading,
+    isError,
+  } = useGetDashboardQuery({
+    timePeriod,
+  });
+
+  // Map API data to chart data
+  const chartData = useMemo(() => {
+    if (!dashboardData?.data?.revenueGraph) return [];
+    // Reverse to show chronological order (optional)
+    return [...dashboardData.data.revenueGraph].reverse().map((item: any) => ({
+      name: item.period,
+      revenue: item.revenue,
+    }));
+  }, [dashboardData]);
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error fetching data</p>;
+
   return (
     <div className="p-4 bg-white rounded-2xl shadow-sm">
       <h2 className="text-lg font-semibold mb-2">Revenue</h2>
+
+      <div className="flex justify-end">
+        {" "}
+        <select
+          value={timePeriod}
+          onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
+          className="border border-gray-300 text-base rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400 mb-4"
+        >
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="all">Yearly</option>
+        </select>
+      </div>
+
       <div className="h-[275px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
+          <BarChart data={chartData}>
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}

@@ -22,6 +22,16 @@ export const userApi = baseApi.injectEndpoints({
       providesTags: ["Users"],
     }),
 
+    // dashboard
+    getDashboard: build.query({
+      query: (params) => ({
+        url: "/dashboard",
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Users"],
+    }),
+
     // ✅ READ Single User by ID
     getUserById: build.query({
       query: (id) => `/users/single/${id}`,
@@ -57,4 +67,5 @@ export const {
   useGetUserByIdQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
+  useGetDashboardQuery,
 } = userApi;
