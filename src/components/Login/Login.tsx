@@ -1,32 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import bg from "@/assets/image/bg.png";
 import { useLoginMutation } from "@/redux/features/auth/authApi";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import logo from "@/assets/logo/logo.png.png";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [login, { isLoading }] = useLoginMutation();
   const router = useRouter();
 
-  // Local form state
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle submit
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -39,59 +36,63 @@ export default function Login() {
       const result = await login(formData).unwrap();
 
       if (result?.success) {
-        // ✅ Save token in cookies
         Cookies.set("token", result.data.token);
         Cookies.set("role", result.data.role);
 
         toast.success(result.message || "Logged in successfully");
 
-        // ✅ Redirect based on role
-        if (result.data.role === "Admin") {
-          router.push("/dashboard");
-        } else {
-          router.push("/");
-        }
+        router.push(result.data.role === "Admin" ? "/dashboard" : "/");
       } else {
         toast.error(result?.message || "Login failed");
       }
     } catch (error: any) {
       toast.error(error?.data?.message || "Invalid email or password");
-      console.error("Login Error:", error);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-6">
-      <div className="flex w-[70vw] h-[70vh] shadow-md border rounded-2xl overflow-hidden bg-white">
-        {/* Left Section */}
-        <div className="flex flex-col justify-center w-1/2 px-14">
-          {/* Logo */}
-          <div className="flex items-center mb-12 space-x-2">
-            <div className="bg-teal-700 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg">
-              🌊
-            </div>
-            <span className="text-gray-800 font-semibold text-xl">Logo</span>
-          </div>
+    <div className="min-h-screen w-full bg-[#e6a51e] flex items-center justify-center px-4">
+      <div className="w-full max-w-xl text-center">
+        {/* Logo */}
+        <div className="flex justify-center -mb-16 ">
+          <Image
+            src={logo} // file from public/
+            alt="TRADI Logo"
+            width={340} // adjust as needed
+            height={240}
+            priority
+          />
+        </div>
 
-          {/* Login Title */}
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Login</h2>
+        {/* Card */}
+        <div className="bg-[#e6a51e]">
+          <h2 className="text-gray-900 text-lg font-semibold mb-1">
+            Login to your account
+          </h2>
+          <p className="text-gray-800 text-sm mb-6">
+            Welcome back to your workspace
+          </p>
 
           {/* Form */}
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Email</label>
+          <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
+            {/* Email */}
+            <div className="text-left">
+              <label className="block text-sm text-gray-900 mb-1">
+                Email Address
+              </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="john.doe@gmail.com"
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                placeholder="Enter your email here"
+                className="w-full border border-gray-600 bg-transparent text-black px-3 py-2 rounded-md focus:outline-none"
               />
             </div>
 
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">
+            {/* Password */}
+            <div className="text-left">
+              <label className="block text-sm text-gray-900 mb-1">
                 Password
               </label>
               <div className="relative">
@@ -100,40 +101,31 @@ export default function Login() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter your password"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-teal-200"
+                  placeholder="Enter your password here"
+                  className="w-full border border-gray-600 bg-transparent text-black px-3 py-2 pr-10 rounded-md focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-gray-500"
+                  className="absolute right-3 top-2.5 text-gray-700"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className={`w-full ${
-                isLoading ? "bg-teal-300" : "bg-[#C5F8F6] hover:bg-[#B0F0ED]"
-              } text-gray-800 font-medium py-2 rounded-md transition`}
-            >
-              {isLoading ? "Logging in..." : "Login"}
-            </button>
+            {/* Button */}
+            <div className="px-5">
+              {" "}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-white text-black font-medium py-2 rounded-md shadow-sm hover:bg-gray-100"
+              >
+                {isLoading ? "Logging in..." : "Log in"}
+              </button>
+            </div>
           </form>
-        </div>
-
-        {/* Right Section - Image */}
-        <div className="relative w-1/2 h-full">
-          <Image
-            src={bg}
-            alt="Login background"
-            fill
-            className="object-cover rounded-l-none rounded-r-2xl"
-            priority
-          />
         </div>
       </div>
     </div>

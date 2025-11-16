@@ -25,7 +25,7 @@ const data = {
   },
   teams: [
     {
-      name: "Ohboy",
+      name: "Kvarow",
       logo: () => <span className="font-bold">Bddddddd</span>,
       plan: "eccoommerce",
     },
@@ -38,8 +38,8 @@ const data = {
       icon: LayoutDashboard,
     },
     {
-      title: "Orders",
-      url: "/dashboard/orders",
+      title: "Transaction",
+      url: "/dashboard/transaction",
       icon: ListOrderedIcon,
     },
     {
@@ -48,8 +48,8 @@ const data = {
       icon: Users2,
     },
     {
-      title: "Products",
-      url: "/dashboard/products",
+      title: "Skills",
+      url: "/dashboard/skills",
       icon: Building,
     },
   ],
@@ -57,14 +57,16 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" className="relative bg-white" {...props}>
-      <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-      </SidebarContent>
-      <SidebarRail />
-    </Sidebar>
+    <div>
+      <Sidebar collapsible="icon" className="relative !bg-[#1f1e1e]" {...props}>
+        <SidebarHeader>
+          <TeamSwitcher teams={data.teams} />
+        </SidebarHeader>
+        <SidebarContent>
+          <NavMain items={data.navMain} />
+        </SidebarContent>
+        <SidebarRail />
+      </Sidebar>
+    </div>
   );
 }

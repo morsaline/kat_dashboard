@@ -1,10 +1,10 @@
-import ProductPage from "@/components/Dashboard/product/ProductPage";
+import Transaction from "@/components/Dashboard/transaction/Transaction";
 import React from "react";
 
 function page() {
   return (
     <div>
-      <ProductPage />
+      <Transaction />
     </div>
   );
 }

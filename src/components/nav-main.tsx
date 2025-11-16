@@ -34,8 +34,8 @@ export function NavMain({
                 tooltip={item.title}
                 className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
                   active
-                    ? "bg-[#b2f7f5] text-black hover:bg-[#b2f7f5] hover:text-black"
-                    : "hover:bg-[#b2f7f5] hover:text-black "
+                    ? "bg-white text-black hover:bg-[#b2f7f5] hover:text-black"
+                    : "hover:bg-white hover:text-black "
                 }`}
               >
                 <a href={item.url}>

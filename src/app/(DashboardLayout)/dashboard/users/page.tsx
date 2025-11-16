@@ -1,10 +1,10 @@
-import UserTable from "@/components/Dashboard/user/userTable";
+import UserPage from "@/components/Dashboard/user-management/UserPage";
 import React from "react";
 
 function page() {
   return (
     <div>
-      <UserTable />
+      <UserPage></UserPage>
     </div>
   );
 }

@@ -1,11 +1,10 @@
-import EditProduct from "@/components/Dashboard/product/EditProduct";
+import Skills from "@/components/Dashboard/skills-management/Skills";
 import React from "react";
 
 function page() {
- 
   return (
     <div>
-      <EditProduct  />
+      <Skills />
     </div>
   );
 }

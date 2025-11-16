@@ -35,14 +35,14 @@ export function TeamSwitcher({
       {/* Sidebar top logo */}
       <SidebarMenu>
         <SidebarMenuItem>
-          <div className="flex items-center justify-center py-4">
-            <Link href={"/"}>
+          <div className="flex items-center justify-center py-4 bg-[#e6a51e]">
+            <Link href={"/"} className="-mb-24">
               <Image
                 src={Logo}
                 alt="App Logo"
-                width={150}
+                width={250}
                 priority
-                className="shadow-xl rounded-xl"
+                className="rounded-xl"
               />
             </Link>
           </div>
@@ -55,7 +55,7 @@ export function TeamSwitcher({
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleLogout}
-              className="text-black cursor-pointer hover:bg-[#b2f7f5]  justify-start border-1 border-[#b2f7f5]"
+              className="hover:text-black cursor-pointer hover:bg-white  justify-start border-1 border-white text-white"
             >
               <LogOut className="w-4 h-4" />
               <span>Log out</span>
