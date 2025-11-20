@@ -1,68 +1,47 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import Loading from "@/app/loading";
 import Pagination from "@/lib/Pagination";
-import { CircleCheck } from "lucide-react";
-import { useState } from "react";
+import { useGetUsersQuery } from "@/redux/features/users/usersApi";
+import { useState, useEffect } from "react";
 
 export default function ActiveUsersTableWithPagination() {
-  const rows = [
-    {
-      sl: "0001",
-      name: "Tanvir",
-      email: "almostan.xyz@gmail.com",
-      student: true,
-      teacher: false,
-    },
-    {
-      sl: "0001",
-      name: "Tanvir",
-      email: "almostan.xyz@gmail.com",
-      student: true,
-      teacher: true,
-    },
-    {
-      sl: "0001",
-      name: "Tanvir",
-      email: "almostan.xyz@gmail.com",
-      student: true,
-      teacher: false,
-    },
-    {
-      sl: "0001",
-      name: "Tanvir",
-      email: "almostan.xyz@gmail.com",
-      student: true,
-      teacher: false,
-    },
-    {
-      sl: "0001",
-      name: "Tanvir",
-      email: "almostan.xyz@gmail.com",
-      student: true,
-      teacher: true,
-    },
-    {
-      sl: "0001",
-      name: "Tanvir",
-      email: "almostan.xyz@gmail.com",
-      student: true,
-      teacher: false,
-    },
-  ];
-
-  // Pagination
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
 
-  const totalPages = Math.ceil(rows.length / rowsPerPage);
+  // Fetch data using the Redux Query hook
+  const { data, isLoading, error } = useGetUsersQuery({
+    page: currentPage,
+    limit: rowsPerPage,
+    removed: false, // Filter for active users
+  });
 
-  const displayedRows = rows.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  // Pagination info from the response
+  const totalPages = data?.data?.meta?.totalPages || 1; // Total pages from the API response
+
+  // Get the active users from the response
+  const displayedRows = data?.data?.data || [];
+
+  // Effect to handle page changes (when currentPage is updated)
+  useEffect(() => {
+    if (data?.data?.meta?.page !== currentPage) {
+      setCurrentPage(data?.data?.meta?.page || 1); // Sync current page with API response
+    }
+  }, [data, currentPage]);
+
+  // Handle data loading and error
+  if (isLoading)
+    return (
+      <div>
+        <Loading />
+      </div>
+    );
+  if (error) return <div>Error loading users.</div>;
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-8 bg-green-200 p-5">
-      <h3 className="text-[16px] text-gray-800 mb-3">Active users</h3>
+      <h3 className="text-[16px] text-gray-800 mb-3">Active Users</h3>
 
       <table className="w-full border-collapse">
         <thead>
@@ -70,18 +49,18 @@ export default function ActiveUsersTableWithPagination() {
             <th className="py-3 px-4 text-left rounded-tl-lg">Sl. No.</th>
             <th className="py-3 px-4 text-left">User Name</th>
             <th className="py-3 px-4 text-left">Email</th>
-            <th className="py-3 px-4 text-left">Student</th>
-            <th className="py-3 px-4 text-left rounded-tr-lg">Teacher</th>
+            {/* <th className="py-3 px-4 text-left">Student</th>
+            <th className="py-3 px-4 text-left rounded-tr-lg">Teacher</th> */}
           </tr>
         </thead>
 
         <tbody>
-          {displayedRows.map((row, i) => (
-            <tr key={i} className="bg-green-200 border-b border-black">
-              <td className="py-3 px-4">{row.sl}</td>
-              <td className="py-3 px-4">{row.name}</td>
+          {displayedRows.map((row: any) => (
+            <tr key={row.id} className="bg-green-200 border-b border-black">
+              <td className="py-3 px-4">{row.serial}</td>
+              <td className="py-3 px-4">{row.fullName}</td>
               <td className="py-3 px-4">{row.email}</td>
-              <td className="py-3 px-4">
+              {/* <td className="py-3 px-4">
                 {row.student ? (
                   <CircleCheck size={18} />
                 ) : (
@@ -94,14 +73,13 @@ export default function ActiveUsersTableWithPagination() {
                 ) : (
                   <CircleCheck size={18} className="opacity-50" />
                 )}
-              </td>
+              </td> */}
             </tr>
           ))}
         </tbody>
       </table>
 
       <div className="flex justify-end">
-        {" "}
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

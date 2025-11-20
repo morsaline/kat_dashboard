@@ -1,52 +1,35 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import Loading from "@/app/loading";
 import Pagination from "@/lib/Pagination";
+import { useGetUsersQuery } from "@/redux/features/users/usersApi";
 import { useState } from "react";
 
 export default function RemovedUserTable() {
-  const rows = [
-    {
-      sl: "0001",
-      name: "Tanvir",
-      email: "almostan.xyz@gmail.com",
-    },
-    {
-      sl: "0002",
-      name: "Rakib",
-      email: "rakib@example.com",
-    },
-    {
-      sl: "0003",
-      name: "Siam",
-      email: "siam@example.com",
-    },
-    {
-      sl: "0004",
-      name: "Hasib",
-      email: "hasib@example.com",
-    },
-    {
-      sl: "0005",
-      name: "Imran",
-      email: "imran@example.com",
-    },
-    {
-      sl: "0006",
-      name: "Sakib",
-      email: "sakib@example.com",
-    },
-  ];
-
-  // Pagination
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
 
-  const totalPages = Math.ceil(rows.length / rowsPerPage);
+  // Fetch data using the Redux Query hook
+  const { data, isLoading, error } = useGetUsersQuery({
+    page: currentPage,
+    limit: rowsPerPage,
+    removed: true, // Filter for removed users
+  });
 
-  const displayedRows = rows.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  // --- Handle Loading and Error States ---
+  if (isLoading)
+    return (
+      <div>
+        <Loading />
+      </div>
+    );
+  if (error) return <div>Error loading removed users.</div>;
+
+  // Pagination data from API response
+  const totalPages = data?.data?.meta?.totalPages || 1; // Correcting totalPages access
+  const displayedRows = data?.data?.data || []; // Users data from API response
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-8 p-5 bg-red-200">
@@ -62,10 +45,10 @@ export default function RemovedUserTable() {
         </thead>
 
         <tbody>
-          {displayedRows.map((row, i) => (
+          {displayedRows.map((row: any, i: number) => (
             <tr key={i} className="bg-red-200 border-b border-black">
-              <td className="py-3 px-4">{row.sl}</td>
-              <td className="py-3 px-4">{row.name}</td>
+              <td className="py-3 px-4">{row.serial}</td>
+              <td className="py-3 px-4">{row.fullName}</td>
               <td className="py-3 px-4">{row.email}</td>
             </tr>
           ))}
@@ -73,7 +56,6 @@ export default function RemovedUserTable() {
       </table>
 
       <div className="flex justify-end">
-        {" "}
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

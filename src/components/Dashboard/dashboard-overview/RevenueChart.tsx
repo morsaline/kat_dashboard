@@ -55,7 +55,7 @@ export default function RevenueChart() {
     if (range === "monthly") return monthlyData;
     if (range === "weekly") return weeklyData;
     return monthlyData;
-  }, [range]);
+  }, [range,monthlyData,weeklyData,yearlyData]);
 
   return (
     <div className="w-full bg-white rounded-xl shadow px-4 py-4">

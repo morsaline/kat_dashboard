@@ -1,28 +1,44 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import Loading from "@/app/loading";
 import Pagination from "@/lib/Pagination";
-import { useState } from "react";
+import { useGetSkillsQuery } from "@/redux/features/skills/skillsApi";
+import { useState, useEffect } from "react";
 
 export default function AllCategoriesTable() {
-  const rows = [
-    { name: "Arts & Crafts", sub: 14, skills: 20, users: 32 },
-    { name: "Arts & Crafts", sub: 14, skills: 20, users: 32 },
-    { name: "Arts & Crafts", sub: 14, skills: 20, users: 32 },
-    { name: "Arts & Crafts", sub: 14, skills: 20, users: 32 },
-    { name: "Arts & Crafts", sub: 14, skills: 20, users: 32 },
-    { name: "Arts & Crafts", sub: 14, skills: 20, users: 32 },
-    { name: "Arts & Crafts", sub: 14, skills: 20, users: 32 },
-  ];
-
-  // Pagination
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
 
-  const totalPages = Math.ceil(rows.length / rowsPerPage);
+  // Fetch data using the Redux Query hook
+  const { data, isLoading, isError } = useGetSkillsQuery({
+    page: currentPage,
+    limit: rowsPerPage,
+  });
 
-  const displayedRows = rows.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage
-  );
+  // Handle loading and error states
+  const categories = data?.data?.tables?.categories.data || [];
+  const totalPages = data?.data?.tables?.categories.meta.totalPages || 1;
+
+  // Pagination logic
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Ensure currentPage is initialized before passing to API
+  useEffect(() => {
+    if (currentPage) {
+      // Optional: You can log or perform other actions here for debugging
+    }
+  }, [currentPage]);
+
+  if (isLoading) {
+    return <Loading/>;
+  }
+
+  if (isError) {
+    return <div>Error fetching categories!</div>;
+  }
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-8">
@@ -38,38 +54,38 @@ export default function AllCategoriesTable() {
             <th className="py-3 px-4 text-left rounded-tl-md">Name</th>
             <th className="py-3 px-4 text-left">Sub-categories</th>
             <th className="py-3 px-4 text-left">Skills</th>
-            <th className="py-3 px-4 text-left">Users</th>
-            <th className="py-3 px-4 text-left rounded-tr-md">Action</th>
+            <th className="py-3 px-4 text-left">Orders</th>
+            {/* <th className="py-3 px-4 text-left rounded-tr-md">Action</th> */}
           </tr>
         </thead>
 
         <tbody>
-          {displayedRows.map((row, i) => (
+          {categories.map((row: any, i: number) => (
             <tr
               key={i}
               className="bg-white border-b border-gray-300 text-[14px]"
             >
               <td className="py-3 px-4">{row.name}</td>
-              <td className="py-3 px-4">{row.sub}</td>
+              <td className="py-3 px-4">{row.subCategories}</td>
               <td className="py-3 px-4">{row.skills}</td>
-              <td className="py-3 px-4">{row.users}</td>
+              <td className="py-3 px-4">{row.orders}</td>
 
-              <td className="py-3 px-4">
+              {/* <td className="py-3 px-4">
                 <button className="bg-red-600 text-white text-[13px] px-4 py-1.5 rounded">
                   Delete
                 </button>
-              </td>
+              </td> */}
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* Pagination aligned left exactly like screenshot */}
+      {/* Pagination */}
       <div className="flex justify-end mt-4">
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
         />
       </div>
     </div>

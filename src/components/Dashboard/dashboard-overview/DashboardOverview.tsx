@@ -1,7 +1,8 @@
 import React from "react";
 import Stats from "./Stats";
 import RevenueChart from "./RevenueChart";
-import ActiveUsersTable from "./ActiveUsersTable";
+
+import ActiveUsersTableWithPagination from "../user-management/ActiveUserTableWithPagination";
 
 function DashboardOverview() {
   return (
@@ -42,7 +43,8 @@ function DashboardOverview() {
 
           {/* Active Users Table */}
           <div className="w-full overflow-x-auto">
-            <ActiveUsersTable />
+            {/* <ActiveUsersTable /> */}
+            <ActiveUsersTableWithPagination />
           </div>
         </div>
       </div>

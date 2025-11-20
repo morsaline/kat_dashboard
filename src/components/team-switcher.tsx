@@ -36,7 +36,7 @@ export function TeamSwitcher({
       <SidebarMenu>
         <SidebarMenuItem>
           <div className="flex items-center justify-center py-4 bg-[#e6a51e]">
-            <Link href={"/"} className="-mb-24">
+            <Link href={"/dashboard"} className="-mb-24">
               <Image
                 src={Logo}
                 alt="App Logo"

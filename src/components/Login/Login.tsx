@@ -41,7 +41,7 @@ export default function Login() {
 
         toast.success(result.message || "Logged in successfully");
 
-        router.push(result.data.role === "Admin" ? "/dashboard" : "/");
+        router.push(result.data.role === "ADMIN" ? "/dashboard" : "/");
       } else {
         toast.error(result?.message || "Login failed");
       }
