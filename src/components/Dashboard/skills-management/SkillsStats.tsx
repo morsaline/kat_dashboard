@@ -10,14 +10,14 @@ export default function SkillsStats() {
         {/* Top Skills (black card) */}
         <div className="w-full rounded-xl px-4 py-6 bg-[#3b3b3b] text-white">
           <p className="text-sm text-white/80">Top Skills</p>
-          <p className="text-2xl font-semibold mt-1">{meta?.topSkills}</p>
+          <p className="text-2xl font-semibold mt-1">{meta?.topSkills || 0}</p>
         </div>
 
         {/* Total Categories */}
         <div className="w-full rounded-xl px-4 py-6 bg-white border border-gray-300">
           <p className="text-sm text-gray-600">Total Categories</p>
           <p className="text-2xl font-semibold mt-1 text-gray-800">
-            {meta?.totalCategories}
+            {meta?.totalCategories || 0}
           </p>
         </div>
 
@@ -26,7 +26,7 @@ export default function SkillsStats() {
           <p className="text-sm text-gray-600">Total Sub-categories</p>
           <p className="text-2xl font-semibold mt-1 text-gray-800">
             {" "}
-            {meta?.totalSubCategories}
+            {meta?.totalSubCategories || 0}
           </p>
         </div>
 
@@ -35,7 +35,7 @@ export default function SkillsStats() {
           <p className="text-sm text-gray-600">Total Skills</p>
           <p className="text-2xl font-semibold mt-1 text-gray-800">
             {" "}
-            {meta?.totalSkills}
+            {meta?.totalSkills || 0}
           </p>
         </div>
       </div>

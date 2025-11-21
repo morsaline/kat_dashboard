@@ -1,82 +1,34 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
 import Pagination from "@/lib/Pagination";
+import { useGetCancelledOrdersQuery } from "@/redux/features/dashboard/dashboardApi";
+import Loading from "@/app/loading";
 
 export default function CancelledOrdersTable() {
-  const allRows = [
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-  ];
-
-  const itemsPerPage = 5;
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
-  const totalPages = Math.ceil(allRows.length / itemsPerPage);
+  // Fetch data using the Redux Query hook
+  const { data, isLoading, error } = useGetCancelledOrdersQuery({
+    page: currentPage,
+    limit: rowsPerPage,
+  });
 
-  const indexLast = currentPage * itemsPerPage;
-  const indexFirst = indexLast - itemsPerPage;
+  // Get the rows and pagination information from the API response
+  const cancelledOrders = data?.data?.data || [];
+  const totalPages = data?.data?.meta?.totalPages || 1;
 
-  const currentRows = allRows.slice(indexFirst, indexLast);
+  // Pagination logic
+  // const indexLast = currentPage * rowsPerPage;
+  // const indexFirst = indexLast - rowsPerPage;
+  // const currentRows = cancelledOrders.slice(indexFirst, indexLast);
 
+  // Handle loading and error
+  if (isLoading) return <Loading/>;
+  if (error) return <div>Error fetching cancelled orders.</div>;
   return (
     <div className="w-full bg-[#f4eddc] rounded-xl p-5 shadow-sm mt-5">
       <h3 className="text-[15px] text-gray-800 mb-4 font-bold">
@@ -97,15 +49,17 @@ export default function CancelledOrdersTable() {
           </thead>
 
           <tbody className="bg-[#f4eddc]">
-            {currentRows.map((row, index) => (
+            {cancelledOrders?.map((row: any, index: number) => (
               <tr
-                key={index}
+                key={row.orderId} // Use a unique identifier like orderId for the key
                 className="border-b border-[#e0d7c3] text-[14px] text-gray-700"
               >
-                <td className="py-3 px-5">{row.orderId}</td>
+                <td className="py-3 px-5">{index + 1}</td>
                 <td className="py-3 px-5">{row.studentName}</td>
                 <td className="py-3 px-5">{row.teacherName}</td>
-                <td className="py-3 px-5">{row.date}</td>
+                <td className="py-3 px-5">
+                  {new Date(row.createdAt).toLocaleDateString()}
+                </td>
                 <td className="py-3 px-5 text-right">
                   <button className="bg-[#e74c3c] hover:bg-[#cf4436] text-white text-[13px] px-4 py-2 rounded-md">
                     Refund

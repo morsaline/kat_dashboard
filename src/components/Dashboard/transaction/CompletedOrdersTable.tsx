@@ -1,70 +1,39 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
 import Pagination from "@/lib/Pagination";
+import { useGetConfirmedOrdersQuery } from "@/redux/features/dashboard/dashboardApi"; // Assuming the correct API hook
+import Loading from "@/app/loading";
 
 export default function CompletedOrdersTable() {
-  const allRows = [
-    {
-      orderId: "0001",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0002",
-      studentName: "Farhan",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0003",
-      studentName: "Rafi",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0004",
-      studentName: "Siam",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0005",
-      studentName: "Tanvir",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0006",
-      studentName: "Jamil",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-    {
-      orderId: "0007",
-      studentName: "Shuvo",
-      teacherName: "Mobin",
-      date: "02/12/25",
-    },
-  ];
-
-  const itemsPerPage = 4;
-
-  // ---- PAGINATION STATE ---- //
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
 
-  const totalPages = Math.ceil(allRows.length / itemsPerPage);
+  // Fetch data using the Redux Query hook
+  const { data, isLoading, error } = useGetConfirmedOrdersQuery({
+    page: currentPage,
+    limit: rowsPerPage,
+  });
 
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
+  // Handle loading and error states
+  if (isLoading) return <Loading />;
+  if (error) return <div>Error fetching confirmed orders.</div>;
 
-  const currentRows = allRows.slice(indexOfFirst, indexOfLast);
+  // Get the rows and pagination information from the API response
+  const confirmedOrders = data?.data?.data || [];
+  const totalPages = data?.data?.meta?.totalPages || 1;
+
+  // // Pagination logic
+  // const indexOfLast = currentPage * rowsPerPage;
+  // const indexOfFirst = indexOfLast - rowsPerPage;
+  // const currentRows = confirmedOrders.slice(indexOfFirst, indexOfLast);
 
   return (
-    <div className="w-full bg-white rounded-xl p-5 shadow-sm">
+    <div className="w-full bg-white rounded-xl p-5 ">
       <h3 className="text-[15px] text-gray-800 mb-4 font-bold">
-        Completed orders
+        Completed Orders
       </h3>
 
       {/* TABLE WRAPPER */}
@@ -81,15 +50,18 @@ export default function CompletedOrdersTable() {
           </thead>
 
           <tbody>
-            {currentRows.map((row, i) => (
+            {confirmedOrders?.map((row: any, i: number) => (
               <tr
-                key={i}
+                key={row.orderId}
                 className="border-b border-[#e5e5e5] text-[14px] text-gray-700"
               >
-                <td className="py-3 px-5">{row.orderId}</td>
+                <td className="py-3 px-5">{i + 1}</td>
                 <td className="py-3 px-5">{row.studentName}</td>
                 <td className="py-3 px-5">{row.teacherName}</td>
-                <td className="py-3 px-5">{row.date}</td>
+                <td className="py-3 px-5">
+                  {new Date(row.createdAt).toLocaleDateString()}{" "}
+                  {/* Format the date */}
+                </td>
                 <td className="py-3 px-5 text-right">
                   <button className="bg-[#d8a21f] hover:bg-[#c8961c] text-white text-[13px] px-4 py-2 rounded-md">
                     Release fund
